@@ -60,7 +60,9 @@ fun CreateBandScreen(
     var genres      by remember { mutableStateOf("") }
     var dateFormed  by remember { mutableStateOf("") }
     var label       by remember { mutableStateOf("") }
+    var dateError   by remember { mutableStateOf(false) }
 
+    val dateRegex = remember { Regex("""^\d{4}-\d{2}-\d{2}$""") }
     val isLoading = uiState is BandUiState.Loading
 
     LaunchedEffect(uiState) {
@@ -141,11 +143,19 @@ fun CreateBandScreen(
 
             BandTextField(
                 value         = dateFormed,
-                onValueChange = { dateFormed = it },
+                onValueChange = { dateFormed = it; dateError = false },
                 label         = "Date Formed (YYYY-MM-DD)",
                 placeholder   = "2020-01-15",
                 enabled       = !isLoading,
+                isError       = dateError,
             )
+            if (dateError) {
+                androidx.compose.material3.Text(
+                    text  = "Use YYYY-MM-DD format",
+                    style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+                    color = androidx.compose.ui.graphics.Color(0xFFFF6B6B),
+                )
+            }
 
             Spacer(Modifier.height(12.dp))
 
@@ -159,9 +169,16 @@ fun CreateBandScreen(
             Spacer(Modifier.height(32.dp))
 
             Button(
-                onClick  = { viewModel.createBand(name, description, genres, dateFormed, label) },
+                onClick  = {
+                    // Validate date if provided
+                    if (dateFormed.isNotBlank() && !dateRegex.matches(dateFormed)) {
+                        dateError = true
+                        return@Button
+                    }
+                    viewModel.createBand(name, description, genres, dateFormed, label)
+                },
                 modifier = Modifier.fillMaxWidth().height(52.dp),
-                enabled  = !isLoading,
+                enabled  = !isLoading && name.isNotBlank(),
                 shape    = MaterialTheme.shapes.small,
                 colors   = ButtonDefaults.buttonColors(
                     containerColor         = ElectricPurple,
@@ -195,6 +212,7 @@ private fun BandTextField(
     minLines: Int = 1,
     maxLines: Int = 1,
     enabled: Boolean = true,
+    isError: Boolean = false,
 ) {
     OutlinedTextField(
         value         = value,
@@ -204,6 +222,7 @@ private fun BandTextField(
         minLines      = minLines,
         maxLines      = maxLines,
         enabled       = enabled,
+        isError       = isError,
         modifier      = Modifier.fillMaxWidth(),
         shape         = MaterialTheme.shapes.small,
         colors        = OutlinedTextFieldDefaults.colors(

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Soundwave / equalizer icon — 5 rounded bars symmetric about x=54.
+  Bars:         x=29  x=40  x=51  x=62  x=73   (6dp wide, 5dp gap)
+  Heights:      16    32    52    32    16       (short · med · tall · med · short)
+  Colors:  ElectricPurple #a020f0  ·  NeonGreen #c3f400 (center bar)
+  Safe zone: 18–90 on both axes.  All bars are within x=29–79, y=28–80.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Bar 1 — short, left (x 29–35, y 46–62) -->
+    <path
+        android:fillColor="#a020f0"
+        android:pathData="M31,46 L33,46 Q35,46 35,48 L35,60 Q35,62 33,62 L31,62 Q29,62 29,60 L29,48 Q29,46 31,46 Z"/>
+
+    <!-- Bar 2 — medium, left (x 40–46, y 38–70) -->
+    <path
+        android:fillColor="#a020f0"
+        android:pathData="M42,38 L44,38 Q46,38 46,40 L46,68 Q46,70 44,70 L42,70 Q40,70 40,68 L40,40 Q40,38 42,38 Z"/>
+
+    <!-- Bar 3 — tallest, center, NeonGreen (x 51–57, y 28–80) -->
+    <path
+        android:fillColor="#c3f400"
+        android:pathData="M53,28 L55,28 Q57,28 57,30 L57,78 Q57,80 55,80 L53,80 Q51,80 51,78 L51,30 Q51,28 53,28 Z"/>
+
+    <!-- Bar 4 — medium, right (x 62–68, y 38–70) -->
+    <path
+        android:fillColor="#a020f0"
+        android:pathData="M64,38 L66,38 Q68,38 68,40 L68,68 Q68,70 66,70 L64,70 Q62,70 62,68 L62,40 Q62,38 64,38 Z"/>
+
+    <!-- Bar 5 — short, right (x 73–79, y 46–62) -->
+    <path
+        android:fillColor="#a020f0"
+        android:pathData="M75,46 L77,46 Q79,46 79,48 L79,60 Q79,62 77,62 L75,62 Q73,62 73,60 L73,48 Q73,46 75,46 Z"/>
+
+</vector>

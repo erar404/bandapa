@@ -450,7 +450,10 @@ private fun AddEventSheet(
     var selectedVenueId by remember { mutableStateOf<String?>(null) }
     var bandMenuExpanded  by remember { mutableStateOf(false) }
     var venueMenuExpanded by remember { mutableStateOf(false) }
+    var startError by remember { mutableStateOf(false) }
+    var endError   by remember { mutableStateOf(false) }
 
+    val timeRegex = remember { Regex("""^\d{2}:\d{2}$""") }
     val date = initialDate ?: LocalDate(2025, 1, 1)
 
     Column(
@@ -489,8 +492,30 @@ private fun AddEventSheet(
         if (!isAllDay) {
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                CalTextField(value = startT, onValueChange = { startT = it }, label = "Start (HH:mm)", modifier = Modifier.weight(1f), enabled = !isLoading)
-                CalTextField(value = endT,   onValueChange = { endT   = it }, label = "End (HH:mm)",   modifier = Modifier.weight(1f), enabled = !isLoading)
+                Column(modifier = Modifier.weight(1f)) {
+                    CalTextField(
+                        value         = startT,
+                        onValueChange = { startT = it; startError = false },
+                        label         = "Start (HH:mm)",
+                        isError       = startError,
+                        enabled       = !isLoading,
+                    )
+                    if (startError) {
+                        Text("Use HH:mm", style = MaterialTheme.typography.labelSmall, color = androidx.compose.ui.graphics.Color(0xFFFF6B6B))
+                    }
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    CalTextField(
+                        value         = endT,
+                        onValueChange = { endT = it; endError = false },
+                        label         = "End (HH:mm)",
+                        isError       = endError,
+                        enabled       = !isLoading,
+                    )
+                    if (endError) {
+                        Text("Use HH:mm", style = MaterialTheme.typography.labelSmall, color = androidx.compose.ui.graphics.Color(0xFFFF6B6B))
+                    }
+                }
             }
         }
 
@@ -574,8 +599,18 @@ private fun AddEventSheet(
         Spacer(Modifier.height(24.dp))
 
         Button(
-            onClick  = { onSave(title, date, startT, endT, selectedBandId, selectedVenueId, location, isAllDay) },
-            enabled  = !isLoading,
+            onClick  = {
+                if (!isAllDay) {
+                    startError = !timeRegex.matches(startT)
+                    endError   = !timeRegex.matches(endT)
+                }
+                val titleOk = title.isNotBlank()
+                val timesOk = isAllDay || (!startError && !endError)
+                if (titleOk && timesOk) {
+                    onSave(title, date, startT, endT, selectedBandId, selectedVenueId, location, isAllDay)
+                }
+            },
+            enabled  = !isLoading && title.isNotBlank(),
             modifier = Modifier.fillMaxWidth().height(52.dp),
             shape    = MaterialTheme.shapes.small,
             colors   = ButtonDefaults.buttonColors(
@@ -714,12 +749,14 @@ private fun CalTextField(
     label: String,
     modifier: Modifier = Modifier.fillMaxWidth(),
     enabled: Boolean = true,
+    isError: Boolean = false,
 ) {
     OutlinedTextField(
         value         = value,
         onValueChange = onValueChange,
         label         = { Text(label) },
         enabled       = enabled,
+        isError       = isError,
         modifier      = modifier,
         shape         = MaterialTheme.shapes.small,
         colors        = calTextFieldColors(),

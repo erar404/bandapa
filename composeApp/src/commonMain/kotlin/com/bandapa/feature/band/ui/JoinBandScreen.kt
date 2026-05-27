@@ -88,7 +88,7 @@ fun JoinBandScreen(
 
     // Pre-populate from deep link
     LaunchedEffect(initialCode) {
-        if (initialCode.isNotBlank()) viewModel.lookUpBand(initialCode)
+        if (initialCode.isNotBlank()) viewModel.lookUpBand(initialCode.uppercase().trim())
     }
 
     Scaffold(
@@ -158,7 +158,7 @@ fun JoinBandScreen(
                     imeAction      = ImeAction.Search,
                 ),
                 keyboardActions = KeyboardActions(
-                    onSearch = { viewModel.lookUpBand(inviteCode) }
+                    onSearch = { viewModel.lookUpBand(inviteCode.trim()) }
                 ),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor   = ElectricCyan,
@@ -176,7 +176,7 @@ fun JoinBandScreen(
             // ── Look Up button ───────────────────────────────
             if (uiState !is BandUiState.BandFound) {
                 OutlinedButton(
-                    onClick  = { viewModel.lookUpBand(inviteCode) },
+                    onClick  = { viewModel.lookUpBand(inviteCode.trim()) },
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                     enabled  = !isLoading && inviteCode.length == 6,
                     shape    = MaterialTheme.shapes.small,

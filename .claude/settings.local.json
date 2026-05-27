@@ -39,7 +39,10 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:supabase-community.github.io)",
       "PowerShell(Tee-Object *)",
-      "Bash(.\\\\gradlew.bat :composeApp:assembleDebug --no-configuration-cache)"
+      "Bash(.\\\\gradlew.bat :composeApp:assembleDebug --no-configuration-cache)",
+      "PowerShell(& \"C:\\\\Users\\\\Arellano\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" devices)",
+      "mcp__supabase__execute_sql",
+      "PowerShell(New-Item *)"
     ]
   },
   "enableAllProjectMcpServers": true,
