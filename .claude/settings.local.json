@@ -1,0 +1,49 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude mcp *)",
+      "mcp__stitch__list_projects",
+      "mcp__stitch__list_screens",
+      "Bash(supabase --version)",
+      "Bash(npx supabase *)",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__list_migrations",
+      "mcp__supabase__apply_migration",
+      "PowerShell(gradle *)",
+      "PowerShell(Get-Command *)",
+      "PowerShell(Get-ChildItem \"C:\\\\Program Files\\\\Android\" -ErrorAction SilentlyContinue | Select-Object Name; Get-ChildItem \"C:\\\\Users\\\\Arellano\\\\AppData\\\\Local\" | Where-Object { $_.Name -match \"Android|Java|JDK|jdk\" } | Select-Object Name)",
+      "PowerShell(java *)",
+      "PowerShell(Test-Path *)",
+      "PowerShell(Get-ChildItem \"C:\\\\Program Files\\\\Android Studio\" -ErrorAction SilentlyContinue | Select-Object Name; Get-ChildItem \"C:\\\\Users\\\\Arellano\\\\AppData\\\\Local\\\\Programs\" -ErrorAction SilentlyContinue | Where-Object { $_.Name -match \"Android|Studio\" } | Select-Object Name; Get-ChildItem \"C:\\\\Users\\\\Arellano\\\\AppData\\\\Roaming\" -ErrorAction SilentlyContinue | Where-Object { $_.Name -match \"Android|Studio\" } | Select-Object Name)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\Arellano\\\\AppData\\\\Local\" | Where-Object { $_.Name -match \"Google|Jet|Android|Studio\" } | Select-Object Name)",
+      "PowerShell(scoop *)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\Arellano\" | Where-Object { $_.Name -match \"Android|Studio|gradle|sdk\" } | Select-Object Name)",
+      "PowerShell(Get-ChildItem \"C:\\\\Program Files\\\\Java\" -ErrorAction SilentlyContinue | Select-Object Name; Get-ChildItem \"C:\\\\Program Files\\\\Eclipse Adoptium\" -ErrorAction SilentlyContinue | Select-Object Name; Get-ChildItem \"C:\\\\Program Files\\\\Microsoft\" -ErrorAction SilentlyContinue | Where-Object { $_.Name -match \"jdk|java\" } | Select-Object Name)",
+      "PowerShell(Invoke-WebRequest -Uri \"https://raw.githubusercontent.com/gradle/gradle/v8.10.2/gradle/wrapper/gradle-wrapper.jar\" -OutFile \"C:\\\\Users\\\\Arellano\\\\ERA\\\\Coding\\\\bandapa\\\\gradle\\\\wrapper\\\\gradle-wrapper.jar\" -ErrorAction Stop; Write-Host \"Downloaded successfully\"; \\(Get-Item \"C:\\\\Users\\\\Arellano\\\\ERA\\\\Coding\\\\bandapa\\\\gradle\\\\wrapper\\\\gradle-wrapper.jar\"\\).Length)",
+      "PowerShell(Get-ChildItem \"C:\\\\Program Files\" | Where-Object { $_.Name -match \"Android Studio\" } | Select-Object Name; Get-ChildItem \"C:\\\\Program Files \\(x86\\)\" -ErrorAction SilentlyContinue | Where-Object { $_.Name -match \"Android|Studio\" } | Select-Object Name; \\(Get-ItemProperty \"HKCU:\\\\Software\\\\Android Studio\" -ErrorAction SilentlyContinue\\); \\(Get-ItemProperty \"HKLM:\\\\SOFTWARE\\\\Android Studio\" -ErrorAction SilentlyContinue\\))",
+      "PowerShell(winget search *)",
+      "PowerShell(winget install *)",
+      "mcp__supabase__get_publishable_keys",
+      "PowerShell(Get-Content *)",
+      "PowerShell(Get-ChildItem \"C:\\\\Program Files\" | Where-Object { $_.Name -match \"Android\" } | Select-Object Name; Get-ChildItem \"C:\\\\Users\\\\Arellano\\\\AppData\\\\Local\\\\Programs\" -ErrorAction SilentlyContinue | Where-Object { $_.Name -match \"Android\" } | Select-Object Name)",
+      "PowerShell(\\(Get-ItemProperty \"HKLM:\\\\SOFTWARE\\\\Android Studio\" -ErrorAction SilentlyContinue\\); \\(Get-ItemProperty \"HKCU:\\\\Software\\\\Android Studio\" -ErrorAction SilentlyContinue\\))",
+      "PowerShell(winget list *)",
+      "PowerShell(Get-ChildItem \"C:\\\\Program Files \\(x86\\)\\\\Android\\\\openjdk\" | Select-Object Name; $javaExe = Get-ChildItem \"C:\\\\Program Files \\(x86\\)\\\\Android\\\\openjdk\" -Recurse -Filter \"java.exe\" -ErrorAction SilentlyContinue | Select-Object -First 1; if \\($javaExe\\) { & $javaExe.FullName -version 2>&1 })",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files \\(x86\\)\\\\Android\\\\openjdk\\\\jdk-17.0.8.101-hotspot\"; $env:PATH = \"$env:JAVA_HOME\\\\bin;$env:PATH\"; $sdkmanager = \"C:\\\\Program Files \\(x86\\)\\\\Android\\\\android-sdk\\\\cmdline-tools\\\\11.0\\\\bin\\\\sdkmanager.bat\"; echo \"yes\" | & $sdkmanager --sdk_root=\"C:\\\\Program Files \\(x86\\)\\\\Android\\\\android-sdk\" \"platforms;android-35\" \"build-tools;35.0.0\" 2>&1 | Select-Object -Last 10)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files \\(x86\\)\\\\Android\\\\openjdk\\\\jdk-17.0.8.101-hotspot\"; $env:PATH = \"$env:JAVA_HOME\\\\bin;$env:PATH\"; Set-Location \"C:\\\\Users\\\\Arellano\\\\ERA\\\\Coding\\\\bandapa\"; .\\\\gradlew.bat :composeApp:assembleDebug --stacktrace 2>&1 | Select-Object -Last 60)",
+      "PowerShell(Get-Process *)",
+      "WebFetch(domain:search.maven.org)",
+      "WebFetch(domain:central.sonatype.com)",
+      "PowerShell(Get-Item *)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:supabase-community.github.io)",
+      "PowerShell(Tee-Object *)",
+      "Bash(.\\\\gradlew.bat :composeApp:assembleDebug --no-configuration-cache)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
+}

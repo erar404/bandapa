@@ -1,0 +1,61 @@
+[versions]
+agp                    = "8.7.3"
+kotlin                 = "2.1.21"
+compose-multiplatform  = "1.7.3"
+kotlinx-coroutines     = "1.9.0"
+kotlinx-serialization  = "1.7.3"
+kotlinx-datetime       = "0.6.1"
+ktor                   = "3.0.3"
+supabase               = "3.1.4"
+koin                   = "4.1.0"
+navigation-compose     = "2.8.0-alpha10"
+buildkonfig            = "0.15.2"
+activity-compose       = "1.9.3"
+lifecycle              = "2.8.4"
+
+[libraries]
+# AndroidX
+androidx-activity-compose      = { group = "androidx.activity",          name = "activity-compose",             version.ref = "activity-compose" }
+
+# Coroutines
+kotlinx-coroutines-core        = { group = "org.jetbrains.kotlinx",      name = "kotlinx-coroutines-core",       version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-android     = { group = "org.jetbrains.kotlinx",      name = "kotlinx-coroutines-android",    version.ref = "kotlinx-coroutines" }
+
+# Serialization
+kotlinx-serialization-json     = { group = "org.jetbrains.kotlinx",      name = "kotlinx-serialization-json",   version.ref = "kotlinx-serialization" }
+kotlinx-datetime               = { group = "org.jetbrains.kotlinx",      name = "kotlinx-datetime",             version.ref = "kotlinx-datetime" }
+
+# Ktor
+ktor-client-core               = { group = "io.ktor",                    name = "ktor-client-core",              version.ref = "ktor" }
+ktor-client-okhttp             = { group = "io.ktor",                    name = "ktor-client-okhttp",            version.ref = "ktor" }
+ktor-client-darwin             = { group = "io.ktor",                    name = "ktor-client-darwin",            version.ref = "ktor" }
+ktor-client-content-negotiation = { group = "io.ktor",                   name = "ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { group = "io.ktor",                   name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+
+# Supabase
+supabase-postgrest             = { group = "io.github.jan-tennert.supabase", name = "postgrest-kt",  version.ref = "supabase" }
+supabase-auth                  = { group = "io.github.jan-tennert.supabase", name = "auth-kt",       version.ref = "supabase" }
+supabase-realtime              = { group = "io.github.jan-tennert.supabase", name = "realtime-kt",   version.ref = "supabase" }
+supabase-storage               = { group = "io.github.jan-tennert.supabase", name = "storage-kt",    version.ref = "supabase" }
+
+# Koin
+koin-core                      = { group = "io.insert-koin", name = "koin-core",                   version.ref = "koin" }
+koin-compose-multiplatform     = { group = "io.insert-koin", name = "koin-compose",                version.ref = "koin" }
+koin-compose-viewmodel         = { group = "io.insert-koin", name = "koin-compose-viewmodel",      version.ref = "koin" }
+koin-android                   = { group = "io.insert-koin", name = "koin-android",                version.ref = "koin" }
+
+# Navigation (JetBrains KMP port of Jetpack Navigation)
+navigation-compose             = { group = "org.jetbrains.androidx.navigation", name = "navigation-compose", version.ref = "navigation-compose" }
+
+# Lifecycle (JetBrains KMP port — needed for ViewModel in commonMain)
+lifecycle-viewmodel            = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel",         version.ref = "lifecycle" }
+lifecycle-viewmodel-compose    = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+
+[plugins]
+androidApplication    = { id = "com.android.application",                    version.ref = "agp" }
+androidLibrary        = { id = "com.android.library",                        version.ref = "agp" }
+kotlinMultiplatform   = { id = "org.jetbrains.kotlin.multiplatform",         version.ref = "kotlin" }
+composeMultiplatform  = { id = "org.jetbrains.compose",                      version.ref = "compose-multiplatform" }
+composeCompiler       = { id = "org.jetbrains.kotlin.plugin.compose",        version.ref = "kotlin" }
+kotlinSerialization   = { id = "org.jetbrains.kotlin.plugin.serialization",  version.ref = "kotlin" }
+buildkonfig           = { id = "com.codingfeline.buildkonfig",               version.ref = "buildkonfig" }

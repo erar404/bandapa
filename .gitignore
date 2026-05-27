@@ -1,0 +1,111 @@
+# ─── Secrets ──────────────────────────────────────────────────────────────────
+local.properties
+.env
+.env.*
+!.env.example
+
+# ─── Gradle ───────────────────────────────────────────────────────────────────
+.gradle/
+build/
+**/build/
+*.gradle.bak
+gradle-app.setting
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# ─── IntelliJ IDEA / Android Studio ──────────────────────────────────────────
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+captures/
+.navigation/
+*.hprof
+
+# ─── Android ──────────────────────────────────────────────────────────────────
+/*/release/
+*.apk
+*.aab
+*.ap_
+*.dex
+proguard/
+lint.xml
+
+# ─── iOS / Xcode ──────────────────────────────────────────────────────────────
+iosApp/*.xcodeproj/xcuserdata/
+iosApp/*.xcworkspace/xcuserdata/
+iosApp/*.xcworkspace/contents.xcworkspacedata
+*.xcuserstate
+*.xccheckout
+*.moved-to-trash/
+DerivedData/
+*.xcscmblueprint
+*.xcscheme
+Pods/
+.symlinks/
+xcuserdata/
+
+# CocoaPods
+iosApp/Podfile.lock
+iosApp/Pods/
+
+# ─── Kotlin / KMP ─────────────────────────────────────────────────────────────
+.kotlin/
+**/.kotlin/
+kotlin-js-store/
+*.kotlin_module
+
+# BuildKonfig generated output (contains secrets from local.properties)
+**/BuildKonfig.kt
+
+# Generated sources
+**/generated/
+**/generatedSources/
+**/composeResources/
+
+# ─── Supabase ─────────────────────────────────────────────────────────────────
+supabase/.branches/
+supabase/.temp/
+supabase/functions/.cache/
+
+# ─── Node / npm (edge functions tooling) ─────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.pnp/
+.pnp.js
+
+# ─── OS files ─────────────────────────────────────────────────────────────────
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+
+# ─── Editor / tool overrides ──────────────────────────────────────────────────
+.vscode/
+*.swp
+*.swo
+.history/
+.fleet/
+*.tmp
+*.bak
+*.orig
+
+# ─── Session / handoff (local dev context, not source) ────────────────────────
+handoff.md

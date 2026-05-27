@@ -1,0 +1,8 @@
+# Copy this file to local.properties (git-ignored) and fill in your values.
+
+# Android SDK path (update to match your machine)
+sdk.dir=C\:\\Users\\YourName\\AppData\\Local\\Android\\Sdk
+
+# Supabase — project ref: rrfelwwoypouqcjbdzrb
+supabase.url=https://rrfelwwoypouqcjbdzrb.supabase.co
+supabase.anon_key=YOUR_SUPABASE_ANON_KEY_HERE
