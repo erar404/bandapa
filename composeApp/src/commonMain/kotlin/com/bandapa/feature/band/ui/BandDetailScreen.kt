@@ -28,7 +28,7 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -129,10 +129,11 @@ fun BandDetailScreen(
         },
     ) { padding ->
         when (val state = uiState) {
-            is BandDetailUiState.Loading -> Box(
-                Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center,
-            ) { CircularProgressIndicator(color = ElectricPurple) }
+            is BandDetailUiState.Loading -> LinearProgressIndicator(
+                modifier   = Modifier.fillMaxWidth().padding(padding),
+                color      = ElectricPurple,
+                trackColor = SurfaceVariant,
+            )
 
             is BandDetailUiState.Loaded -> {
                 Column(

@@ -19,13 +19,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -96,7 +97,7 @@ fun VenuesScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = OnSurface)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = OnSurface)
                     }
                 },
                 actions = {
@@ -129,10 +130,11 @@ fun VenuesScreen(
     ) { padding ->
         when {
             uiState.isLoading -> {
-                Box(
-                    modifier         = Modifier.fillMaxSize().padding(padding),
-                    contentAlignment = Alignment.Center,
-                ) { CircularProgressIndicator(color = ElectricPurple) }
+                LinearProgressIndicator(
+                    modifier   = Modifier.fillMaxWidth().padding(padding),
+                    color      = ElectricPurple,
+                    trackColor = SurfaceVariant,
+                )
             }
             uiState.venues.isEmpty() -> {
                 Box(
