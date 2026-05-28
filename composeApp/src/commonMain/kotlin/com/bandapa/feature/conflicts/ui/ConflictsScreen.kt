@@ -17,14 +17,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -40,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.bandapa.feature.calendar.domain.Event
@@ -51,6 +50,7 @@ import com.bandapa.ui.theme.ElectricPurple
 import com.bandapa.ui.theme.NeonGreen
 import com.bandapa.ui.theme.OnAccent
 import com.bandapa.ui.theme.OnSurface
+import com.bandapa.ui.theme.OnSurfaceVariant
 import com.bandapa.ui.theme.Surface
 import com.bandapa.ui.theme.SurfaceVariant
 import org.koin.compose.viewmodel.koinViewModel
@@ -58,6 +58,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun ConflictsScreen(
     modifier: Modifier = Modifier,
+    onGoToBands: () -> Unit = {},
     viewModel: ConflictsViewModel = koinViewModel(),
 ) {
     val uiState      by viewModel.uiState.collectAsState()
@@ -82,42 +83,33 @@ fun ConflictsScreen(
                 .padding(horizontal = 16.dp),
         ) {
             Spacer(Modifier.height(12.dp))
-            Row(
-                modifier          = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    "Conflicts",
-                    style      = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color      = OnSurface,
-                    modifier   = Modifier.weight(1f),
+
+            // ── Header ────────────────────────────────────────────────────────────
+            Text(
+                "Conflicts",
+                style      = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.ExtraBold,
+                color      = OnSurface,
+            )
+
+            // Refresh indicator
+            if (isRefreshing) {
+                LinearProgressIndicator(
+                    modifier   = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    color      = ElectricPurple,
+                    trackColor = SurfaceVariant,
                 )
-                if (isRefreshing) {
-                    CircularProgressIndicator(
-                        modifier    = Modifier.size(20.dp),
-                        color       = ElectricPurple,
-                        strokeWidth = 2.dp,
-                    )
-                } else {
-                    IconButton(onClick = viewModel::refresh, modifier = Modifier.size(36.dp)) {
-                        Icon(
-                            imageVector        = Icons.Default.Refresh,
-                            contentDescription = "Refresh",
-                            tint               = OnSurface.copy(alpha = 0.4f),
-                            modifier           = Modifier.size(18.dp),
-                        )
-                    }
-                }
+            } else {
+                Spacer(Modifier.height(12.dp))
             }
-            Spacer(Modifier.height(12.dp))
 
             when (val state = uiState) {
-                is ConflictsUiState.Loading -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = ElectricPurple)
-                    }
-                }
+                is ConflictsUiState.Loading -> LinearProgressIndicator(
+                    modifier   = Modifier.fillMaxWidth(),
+                    color      = ElectricPurple,
+                    trackColor = SurfaceVariant,
+                )
+                is ConflictsUiState.NoBands -> NoBandsState(onGoToBands = onGoToBands)
                 is ConflictsUiState.Loaded -> {
                     if (state.items.isEmpty()) {
                         EmptyState()
@@ -144,30 +136,96 @@ fun ConflictsScreen(
     }
 }
 
+// ─── No bands state ───────────────────────────────────────────────────────────
+
+@Composable
+private fun NoBandsState(onGoToBands: () -> Unit) {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier            = Modifier.padding(horizontal = 32.dp),
+        ) {
+            Box(
+                modifier         = Modifier
+                    .size(64.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(ElectricPurple.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector        = Icons.Default.Groups,
+                    contentDescription = null,
+                    tint               = ElectricPurple,
+                    modifier           = Modifier.size(30.dp),
+                )
+            }
+            Spacer(Modifier.height(16.dp))
+            Text(
+                "No band yet",
+                style      = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.ExtraBold,
+                color      = OnSurface,
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "Create or join a band first before using this feature.",
+                style     = MaterialTheme.typography.bodyMedium,
+                color     = OnSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(24.dp))
+            Button(
+                onClick = onGoToBands,
+                shape   = MaterialTheme.shapes.small,
+                colors  = ButtonDefaults.buttonColors(
+                    containerColor = ElectricPurple,
+                    contentColor   = OnAccent,
+                ),
+            ) {
+                Icon(Icons.Default.Groups, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Go to Bands", fontWeight = FontWeight.SemiBold)
+            }
+        }
+    }
+}
+
 // ─── Empty state ──────────────────────────────────────────────────────────────
 
 @Composable
 private fun EmptyState() {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                imageVector        = Icons.Default.CheckCircle,
-                contentDescription = null,
-                tint               = NeonGreen,
-                modifier           = Modifier.size(56.dp),
-            )
-            Spacer(Modifier.height(12.dp))
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier            = Modifier.padding(horizontal = 32.dp),
+        ) {
+            Box(
+                modifier         = Modifier
+                    .size(64.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(NeonGreen.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector        = Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint               = NeonGreen,
+                    modifier           = Modifier.size(30.dp),
+                )
+            }
+            Spacer(Modifier.height(16.dp))
             Text(
-                "No active conflicts",
-                style      = MaterialTheme.typography.titleMedium,
+                "All clear",
+                style      = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.ExtraBold,
                 color      = OnSurface,
-                fontWeight = FontWeight.SemiBold,
             )
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(6.dp))
             Text(
-                "Your schedule is clear.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = OnSurface.copy(alpha = 0.5f),
+                "No scheduling conflicts detected.",
+                style     = MaterialTheme.typography.bodyMedium,
+                color     = OnSurfaceVariant,
+                textAlign = TextAlign.Center,
             )
         }
     }
@@ -189,71 +247,71 @@ private fun ConflictCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(Surface)
-            .padding(16.dp),
+            .background(Surface),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector        = Icons.Default.Warning,
-                contentDescription = null,
-                tint               = ElectricPurple,
-                modifier           = Modifier.size(18.dp),
-            )
-            Spacer(Modifier.width(6.dp))
+        // Lime top accent line
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(2.dp)
+                .background(ElectricPurple),
+        )
+
+        Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 "Scheduling Conflict",
                 style      = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
                 color      = ElectricPurple,
             )
-        }
 
-        Spacer(Modifier.height(12.dp))
-        EventRow(event = detail.eventA)
-        Spacer(Modifier.height(8.dp))
-        Text(
-            "vs",
-            style    = MaterialTheme.typography.labelSmall,
-            color    = OnSurface.copy(alpha = 0.4f),
-            modifier = Modifier.padding(start = 8.dp),
-        )
-        Spacer(Modifier.height(8.dp))
-        EventRow(event = detail.eventB)
-
-        Spacer(Modifier.height(16.dp))
-        HorizontalDivider(color = SurfaceVariant)
-        Spacer(Modifier.height(12.dp))
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            VoteButton(
-                label    = detail.eventA.title,
-                votes    = votesForA,
-                isMyVote = detail.myVote == detail.eventA.id,
-                modifier = Modifier.weight(1f),
-                onClick  = { onVote(detail.eventA.id) },
-            )
-            VoteButton(
-                label    = detail.eventB.title,
-                votes    = votesForB,
-                isMyVote = detail.myVote == detail.eventB.id,
-                modifier = Modifier.weight(1f),
-                onClick  = { onVote(detail.eventB.id) },
-            )
-        }
-
-        if (totalVotes > 0) {
+            Spacer(Modifier.height(14.dp))
+            EventRow(event = detail.eventA)
             Spacer(Modifier.height(8.dp))
-            VoteBars(votesForA = votesForA, votesForB = votesForB, totalVotes = totalVotes)
-        }
+            Text(
+                "vs",
+                style    = MaterialTheme.typography.labelSmall,
+                color    = OnSurface.copy(alpha = 0.35f),
+                modifier = Modifier.padding(start = 8.dp),
+            )
+            Spacer(Modifier.height(8.dp))
+            EventRow(event = detail.eventB)
 
-        Spacer(Modifier.height(12.dp))
-        OutlinedButton(
-            onClick  = onDismiss,
-            modifier = Modifier.fillMaxWidth(),
-            shape    = MaterialTheme.shapes.small,
-            colors   = ButtonDefaults.outlinedButtonColors(contentColor = OnSurface.copy(alpha = 0.6f)),
-        ) {
-            Text("Dismiss", style = MaterialTheme.typography.labelMedium)
+            Spacer(Modifier.height(16.dp))
+            HorizontalDivider(color = SurfaceVariant)
+            Spacer(Modifier.height(12.dp))
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                VoteButton(
+                    label    = detail.eventA.title,
+                    votes    = votesForA,
+                    isMyVote = detail.myVote == detail.eventA.id,
+                    modifier = Modifier.weight(1f),
+                    onClick  = { onVote(detail.eventA.id) },
+                )
+                VoteButton(
+                    label    = detail.eventB.title,
+                    votes    = votesForB,
+                    isMyVote = detail.myVote == detail.eventB.id,
+                    modifier = Modifier.weight(1f),
+                    onClick  = { onVote(detail.eventB.id) },
+                )
+            }
+
+            if (totalVotes > 0) {
+                Spacer(Modifier.height(8.dp))
+                VoteBars(votesForA = votesForA, votesForB = votesForB, totalVotes = totalVotes)
+            }
+
+            Spacer(Modifier.height(12.dp))
+            OutlinedButton(
+                onClick  = onDismiss,
+                modifier = Modifier.fillMaxWidth(),
+                shape    = MaterialTheme.shapes.small,
+                colors   = ButtonDefaults.outlinedButtonColors(contentColor = OnSurface.copy(alpha = 0.55f)),
+            ) {
+                Text("Dismiss", style = MaterialTheme.typography.labelMedium)
+            }
         }
     }
 }
@@ -282,7 +340,7 @@ private fun EventRow(event: Event) {
             Text(
                 buildEventSubtitle(event),
                 style = MaterialTheme.typography.bodySmall,
-                color = OnSurface.copy(alpha = 0.55f),
+                color = OnSurfaceVariant,
             )
         }
     }
@@ -342,8 +400,8 @@ private fun VoteBars(votesForA: Int, votesForB: Int, totalVotes: Int) {
     }
     Spacer(Modifier.height(4.dp))
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text("$votesForA vote${if (votesForA != 1) "s" else ""}", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(alpha = 0.5f))
-        Text("$votesForB vote${if (votesForB != 1) "s" else ""}", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(alpha = 0.5f))
+        Text("$votesForA vote${if (votesForA != 1) "s" else ""}", style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant)
+        Text("$votesForB vote${if (votesForB != 1) "s" else ""}", style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant)
     }
 }
 

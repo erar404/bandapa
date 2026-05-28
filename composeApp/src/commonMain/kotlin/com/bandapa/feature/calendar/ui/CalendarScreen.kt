@@ -216,7 +216,7 @@ private fun MonthHeader(
         Text(
             text       = "${month.month.displayName()} ${month.year}",
             style      = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.ExtraBold,
             color      = OnSurface,
         )
         IconButton(onClick = onNext) {
@@ -336,7 +336,7 @@ private fun DayEventList(
     Text(
         text       = day.toDayLabel(),
         style      = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.SemiBold,
+        fontWeight = FontWeight.ExtraBold,
         color      = OnSurface,
     )
     Spacer(Modifier.height(8.dp))
@@ -345,7 +345,7 @@ private fun DayEventList(
         Text(
             text  = "No events",
             style = MaterialTheme.typography.bodyMedium,
-            color = OnSurface.copy(alpha = 0.4f),
+            color = com.bandapa.ui.theme.OnSurfaceVariant,
         )
     } else {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -394,10 +394,10 @@ private fun EventCard(event: Event, onDelete: () -> Unit, onTap: () -> Unit) {
                 Text(
                     text  = "${event.startTime.formatTime()} – ${event.endTime.formatTime()}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = OnSurface.copy(alpha = 0.6f),
+                    color = com.bandapa.ui.theme.OnSurfaceVariant,
                 )
             } else {
-                Text("All day", style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(alpha = 0.6f))
+                Text("All day", style = MaterialTheme.typography.bodySmall, color = com.bandapa.ui.theme.OnSurfaceVariant)
             }
             event.location?.let { loc ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -466,14 +466,15 @@ private fun AddEventSheet(
         Text(
             "Add Event",
             style      = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.ExtraBold,
             color      = OnSurface,
         )
         Spacer(Modifier.height(4.dp))
         Text(
             date.toDayLabel(),
-            style = MaterialTheme.typography.bodyMedium,
-            color = ElectricPurple,
+            style      = MaterialTheme.typography.bodyMedium,
+            color      = ElectricPurple,
+            fontWeight = FontWeight.SemiBold,
         )
         Spacer(Modifier.height(16.dp))
 
@@ -501,7 +502,7 @@ private fun AddEventSheet(
                         enabled       = !isLoading,
                     )
                     if (startError) {
-                        Text("Use HH:mm", style = MaterialTheme.typography.labelSmall, color = androidx.compose.ui.graphics.Color(0xFFFF6B6B))
+                        Text("Use HH:mm", style = MaterialTheme.typography.labelSmall, color = com.bandapa.ui.theme.ErrorRed)
                     }
                 }
                 Column(modifier = Modifier.weight(1f)) {
@@ -513,7 +514,7 @@ private fun AddEventSheet(
                         enabled       = !isLoading,
                     )
                     if (endError) {
-                        Text("Use HH:mm", style = MaterialTheme.typography.labelSmall, color = androidx.compose.ui.graphics.Color(0xFFFF6B6B))
+                        Text("Use HH:mm", style = MaterialTheme.typography.labelSmall, color = com.bandapa.ui.theme.ErrorRed)
                     }
                 }
             }
@@ -718,7 +719,7 @@ private fun EventDetailSheet(
             onClick  = onDelete,
             modifier = Modifier.fillMaxWidth().height(48.dp),
             shape    = MaterialTheme.shapes.small,
-            colors   = ButtonDefaults.outlinedButtonColors(contentColor = androidx.compose.ui.graphics.Color(0xFFFF6B6B)),
+            colors   = ButtonDefaults.outlinedButtonColors(contentColor = com.bandapa.ui.theme.ErrorRed),
         ) {
             Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(6.dp))
@@ -765,13 +766,16 @@ private fun CalTextField(
 
 @Composable
 private fun calTextFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor   = ElectricPurple,
-    focusedLabelColor    = ElectricPurple,
-    unfocusedBorderColor = SurfaceVariant,
-    unfocusedLabelColor  = OnSurface.copy(alpha = 0.5f),
-    focusedTextColor     = OnSurface,
-    unfocusedTextColor   = OnSurface,
-    cursorColor          = ElectricPurple,
+    focusedBorderColor      = ElectricPurple,
+    focusedLabelColor       = ElectricPurple,
+    unfocusedBorderColor    = SurfaceVariant,
+    unfocusedLabelColor     = OnSurface.copy(alpha = 0.45f),
+    focusedTextColor        = OnSurface,
+    unfocusedTextColor      = OnSurface,
+    cursorColor             = ElectricPurple,
+    focusedContainerColor   = androidx.compose.ui.graphics.Color.Transparent,
+    unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+    disabledContainerColor  = androidx.compose.ui.graphics.Color.Transparent,
 )
 
 private fun Month.displayName(): String = when (this) {

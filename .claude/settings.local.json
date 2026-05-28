@@ -42,7 +42,17 @@
       "Bash(.\\\\gradlew.bat :composeApp:assembleDebug --no-configuration-cache)",
       "PowerShell(& \"C:\\\\Users\\\\Arellano\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" devices)",
       "mcp__supabase__execute_sql",
-      "PowerShell(New-Item *)"
+      "PowerShell(New-Item *)",
+      "Bash(./gradlew :composeApp:assembleDebug)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files \\(x86\\)\\\\Android\\\\openjdk\\\\jdk-17.0.8.101-hotspot\"; $env:Path = \"$env:JAVA_HOME\\\\bin;$env:Path\"; Set-Location \"C:\\\\Users\\\\Arellano\\\\ERA\\\\Coding\\\\bandapa\"; .\\\\gradlew.bat :composeApp:assembleDebug 2>&1)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files \\(x86\\)\\\\Android\\\\openjdk\\\\jdk-17.0.8.101-hotspot\"; $env:Path = \"$env:JAVA_HOME\\\\bin;$env:Path\"; Set-Location \"C:\\\\Users\\\\Arellano\\\\ERA\\\\Coding\\\\bandapa\"; .\\\\gradlew.bat :composeApp:assembleDebug 2>&1 | Select-Object -Last 10)",
+      "PowerShell($anonKey = \\(\\(Get-Content \"C:\\\\Users\\\\Arellano\\\\ERA\\\\Coding\\\\bandapa\\\\local.properties\"\\) | Where-Object { $_ -match \"^supabase\\\\.anon_key=\" }\\) -replace \"^supabase\\\\.anon_key=\", \"\"; Write-Host \"Key starts with: $\\($anonKey.Substring\\(0,20\\)\\)...\"; $apkPath = \"C:\\\\Users\\\\Arellano\\\\ERA\\\\Coding\\\\bandapa\\\\composeApp\\\\build\\\\outputs\\\\apk\\\\debug\\\\composeApp-debug.apk\"; $uploadUrl = \"https://rrfelwwoypouqcjbdzrb.supabase.co/storage/v1/object/releases/bandapa-latest.apk\"; try { $response = Invoke-RestMethod -Uri $uploadUrl -Method Post -Headers @{ \"Authorization\" = \"Bearer $anonKey\"; \"x-upsert\" = \"true\" } -ContentType \"application/octet-stream\" -InFile $apkPath; $response | ConvertTo-Json } catch { $_.Exception.Response.StatusCode; $_ })",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Arellano\\\\ERA\\\\Coding\\\\bandapa\\\\composeApp\\\\src\\\\commonMain\\\\composeResources\\\\drawable\")",
+      "Bash(cp \"C:\\\\Users\\\\Arellano\\\\ERA\\\\Coding\\\\bandapa\\\\static\\\\app-logo.png\" \"C:\\\\Users\\\\Arellano\\\\ERA\\\\Coding\\\\bandapa\\\\composeApp\\\\src\\\\commonMain\\\\composeResources\\\\drawable\\\\app_logo.png\")",
+      "Bash(cp \"C:\\\\Users\\\\Arellano\\\\ERA\\\\Coding\\\\bandapa\\\\static\\\\app-logo.png\" \"C:\\\\Users\\\\Arellano\\\\ERA\\\\Coding\\\\bandapa\\\\composeApp\\\\src\\\\androidMain\\\\res\\\\drawable\\\\app_logo.png\")",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files \\(x86\\)\\\\Android\\\\openjdk\\\\jdk-17.0.8.101-hotspot\"; $env:Path = \"$env:JAVA_HOME\\\\bin;$env:Path\"; Set-Location \"C:\\\\Users\\\\Arellano\\\\ERA\\\\Coding\\\\bandapa\"; .\\\\gradlew.bat :composeApp:assembleDebug 2>&1 | Select-Object -Last 40)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files \\(x86\\)\\\\Android\\\\openjdk\\\\jdk-17.0.8.101-hotspot\"; $env:Path = \"$env:JAVA_HOME\\\\bin;$env:Path\"; Set-Location \"C:\\\\Users\\\\Arellano\\\\ERA\\\\Coding\\\\bandapa\"; .\\\\gradlew.bat :composeApp:assembleDebug 2>&1 | Select-Object -Last 8)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files \\(x86\\)\\\\Android\\\\openjdk\\\\jdk-17.0.8.101-hotspot\"; $env:Path = \"$env:JAVA_HOME\\\\bin;$env:Path\"; Set-Location \"C:\\\\Users\\\\Arellano\\\\ERA\\\\Coding\\\\bandapa\"; .\\\\gradlew.bat :composeApp:assembleDebug 2>&1 | Select-Object -Last 20)"
     ]
   },
   "enableAllProjectMcpServers": true,

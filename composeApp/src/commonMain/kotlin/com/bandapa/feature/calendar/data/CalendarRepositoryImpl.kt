@@ -10,6 +10,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.plus
+import kotlinx.datetime.todayIn
 
 class CalendarRepositoryImpl(private val supabase: SupabaseClient) : CalendarRepository {
 
@@ -36,6 +37,14 @@ class CalendarRepositoryImpl(private val supabase: SupabaseClient) : CalendarRep
         }.decodeList<Event>()
             .sortedBy { it.startTime }
             .take(limit)
+    }
+
+    override suspend fun getTodayEvents(): List<Event> {
+        val tz    = TimeZone.currentSystemDefault()
+        val today = Clock.System.todayIn(tz)
+        return getEventsForMonth(today.year, today.monthNumber)
+            .filter { it.startTime.startsWith(today.toString()) }
+            .sortedBy { it.startTime }
     }
 
     override suspend fun createEvent(event: Event): Event {

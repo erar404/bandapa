@@ -247,8 +247,8 @@ fun ProfileScreen(
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape    = RoundedCornerShape(10.dp),
                 colors   = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF3A1010),
-                    contentColor   = Color(0xFFFF6B6B),
+                    containerColor = com.bandapa.ui.theme.ErrorContainer,
+                    contentColor   = com.bandapa.ui.theme.ErrorRed,
                 ),
             ) {
                 Text("Sign Out", fontWeight = FontWeight.Bold, fontSize = 15.sp)
@@ -319,10 +319,14 @@ private fun SettingsRow(
 
 @Composable
 private fun profileTextFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor   = ElectricPurple,
-    focusedLabelColor    = ElectricPurple,
-    unfocusedBorderColor = SurfaceVariant,
-    focusedTextColor     = OnSurface,
-    unfocusedTextColor   = OnSurface,
-    cursorColor          = ElectricPurple,
+    focusedBorderColor      = ElectricPurple,
+    focusedLabelColor       = ElectricPurple,
+    unfocusedBorderColor    = SurfaceVariant,
+    unfocusedLabelColor     = OnSurface.copy(alpha = 0.45f),
+    focusedTextColor        = OnSurface,
+    unfocusedTextColor      = OnSurface,
+    cursorColor             = ElectricPurple,
+    focusedContainerColor   = androidx.compose.ui.graphics.Color.Transparent,
+    unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+    disabledContainerColor  = androidx.compose.ui.graphics.Color.Transparent,
 )

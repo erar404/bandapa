@@ -15,6 +15,7 @@ import com.bandapa.feature.calendar.ui.CalendarViewModel
 import com.bandapa.feature.conflicts.data.ConflictsRepository
 import com.bandapa.feature.conflicts.data.ConflictsRepositoryImpl
 import com.bandapa.feature.conflicts.ui.ConflictsViewModel
+import com.bandapa.feature.home.ui.HomeViewModel
 import com.bandapa.feature.profile.data.ProfileRepository
 import com.bandapa.feature.profile.data.ProfileRepositoryImpl
 import com.bandapa.feature.profile.ui.ProfileViewModel
@@ -47,7 +48,7 @@ val calendarModule = module {
 
 val conflictsModule = module {
     single<ConflictsRepository> { ConflictsRepositoryImpl(get()) }
-    viewModel { ConflictsViewModel(get(), get()) }
+    viewModel { ConflictsViewModel(get(), get(), get()) }
 }
 
 val venueModule = module {
@@ -60,6 +61,10 @@ val profileModule = module {
     viewModel { ProfileViewModel(get(), get(), get()) }
 }
 
+val homeModule = module {
+    viewModel { HomeViewModel(get(), get(), get()) }
+}
+
 fun appModules() = listOf(
     coreModule,
     authModule,
@@ -68,4 +73,5 @@ fun appModules() = listOf(
     conflictsModule,
     venueModule,
     profileModule,
+    homeModule,
 )

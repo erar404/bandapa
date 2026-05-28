@@ -2,6 +2,7 @@ package com.bandapa.feature.conflicts.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bandapa.feature.band.data.BandRepository
 import com.bandapa.feature.conflicts.data.ConflictsRepository
 import com.bandapa.feature.conflicts.domain.ConflictsUiState
 import io.github.jan.supabase.SupabaseClient
@@ -18,6 +19,7 @@ import kotlinx.coroutines.launch
 
 class ConflictsViewModel(
     private val repo: ConflictsRepository,
+    private val bandRepo: BandRepository,
     private val supabase: SupabaseClient,
 ) : ViewModel() {
 
@@ -42,7 +44,12 @@ class ConflictsViewModel(
                 _uiState.value = ConflictsUiState.Loading
             }
             try {
-                _uiState.value = ConflictsUiState.Loaded(repo.getOpenConflicts())
+                val bands = bandRepo.getMyBands()
+                if (bands.isEmpty()) {
+                    _uiState.value = ConflictsUiState.NoBands
+                } else {
+                    _uiState.value = ConflictsUiState.Loaded(repo.getOpenConflicts())
+                }
             } catch (e: Exception) {
                 _uiState.value = ConflictsUiState.Error(e.message ?: "Failed to load conflicts")
             }

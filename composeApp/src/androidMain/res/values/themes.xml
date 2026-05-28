@@ -3,9 +3,9 @@
 
     <!-- Base app theme — no action bar, all-dark window -->
     <style name="Theme.Bandapa" parent="android:Theme.Material.NoActionBar">
-        <item name="android:statusBarColor">#131313</item>
-        <item name="android:navigationBarColor">#131313</item>
-        <item name="android:windowBackground">#131313</item>
+        <item name="android:statusBarColor">#0f1509</item>
+        <item name="android:navigationBarColor">#0f1509</item>
+        <item name="android:windowBackground">#0f1509</item>
     </style>
 
     <!--
@@ -16,9 +16,9 @@
       postSplashScreenTheme swaps back to Theme.Bandapa once content is ready.
     -->
     <style name="Theme.Bandapa.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#131313</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
-        <item name="android:windowSplashScreenIconBackgroundColor">#1E1E1E</item>
+        <item name="windowSplashScreenBackground">#0f1509</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/app_logo</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">#1b2215</item>
         <item name="postSplashScreenTheme">@style/Theme.Bandapa</item>
     </style>
 

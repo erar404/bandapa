@@ -153,7 +153,7 @@ fun CreateBandScreen(
                 androidx.compose.material3.Text(
                     text  = "Use YYYY-MM-DD format",
                     style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
-                    color = androidx.compose.ui.graphics.Color(0xFFFF6B6B),
+                    color = com.bandapa.ui.theme.ErrorRed,
                 )
             }
 
@@ -226,13 +226,16 @@ private fun BandTextField(
         modifier      = Modifier.fillMaxWidth(),
         shape         = MaterialTheme.shapes.small,
         colors        = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor    = ElectricPurple,
-            focusedLabelColor     = ElectricPurple,
-            unfocusedBorderColor  = SurfaceVariant,
-            unfocusedLabelColor   = OnSurface.copy(alpha = 0.5f),
-            focusedTextColor      = OnSurface,
-            unfocusedTextColor    = OnSurface,
-            cursorColor           = ElectricPurple,
+            focusedBorderColor      = ElectricPurple,
+            focusedLabelColor       = ElectricPurple,
+            unfocusedBorderColor    = SurfaceVariant,
+            unfocusedLabelColor     = OnSurface.copy(alpha = 0.45f),
+            focusedTextColor        = OnSurface,
+            unfocusedTextColor      = OnSurface,
+            cursorColor             = ElectricPurple,
+            focusedContainerColor   = androidx.compose.ui.graphics.Color.Transparent,
+            unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+            disabledContainerColor  = androidx.compose.ui.graphics.Color.Transparent,
         ),
     )
 }

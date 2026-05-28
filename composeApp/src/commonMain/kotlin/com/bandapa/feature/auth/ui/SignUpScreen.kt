@@ -1,6 +1,12 @@
 package com.bandapa.feature.auth.ui
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,11 +15,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +42,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -38,14 +51,15 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.bandapa.feature.auth.domain.AuthUiState
 import com.bandapa.feature.auth.ui.components.AuthTextField
 import com.bandapa.ui.theme.Background
-import com.bandapa.ui.theme.ElectricCyan
 import com.bandapa.ui.theme.ElectricPurple
-import com.bandapa.ui.theme.NeonGreen
 import com.bandapa.ui.theme.OnAccent
 import com.bandapa.ui.theme.OnSurface
+import com.bandapa.ui.theme.Surface
+import com.bandapa.ui.theme.SurfaceVariant
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -53,8 +67,8 @@ fun SignUpScreen(
     onNavigateBack: () -> Unit,
     viewModel: AuthViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
+    val uiState           by viewModel.uiState.collectAsState()
+    val snackbarHostState  = remember { SnackbarHostState() }
 
     var email           by remember { mutableStateOf("") }
     var password        by remember { mutableStateOf("") }
@@ -74,32 +88,56 @@ fun SignUpScreen(
         }
     }
 
+    val btnInteraction = remember { MutableInteractionSource() }
+    val btnPressed     by btnInteraction.collectIsPressedAsState()
+    val btnScale       by animateFloatAsState(
+        targetValue   = if (btnPressed) 0.97f else 1f,
+        animationSpec = spring(stiffness = 600f),
+        label         = "signupBtnScale",
+    )
+
     Scaffold(
         snackbarHost   = { SnackbarHost(snackbarHostState) },
         containerColor = Background,
     ) { innerPadding ->
 
-        // ── Confirmation pending state ───────────────────────────
+        // ── Email confirmation pending ───────────────────────────────────────────
         if (uiState is AuthUiState.EmailConfirmationPending) {
             Column(
-                modifier              = Modifier
+                modifier            = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
                     .padding(horizontal = 32.dp),
-                verticalArrangement   = Arrangement.Center,
-                horizontalAlignment   = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                Box(
+                    modifier         = Modifier
+                        .size(72.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(ElectricPurple.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector        = Icons.Default.Email,
+                        contentDescription = null,
+                        tint               = ElectricPurple,
+                        modifier           = Modifier.size(32.dp),
+                    )
+                }
+                Spacer(Modifier.height(24.dp))
                 Text(
-                    text      = "Check your inbox",
-                    style     = MaterialTheme.typography.headlineMedium,
-                    color     = ElectricCyan,
-                    fontWeight = FontWeight.Bold,
+                    text       = "Check your inbox",
+                    style      = MaterialTheme.typography.headlineMedium,
+                    color      = OnSurface,
+                    fontWeight = FontWeight.ExtraBold,
+                    textAlign  = TextAlign.Center,
                 )
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(12.dp))
                 Text(
-                    text      = "We sent a confirmation link to $email.\nClick it to activate your account, then log in.",
+                    text      = "We sent a confirmation link to\n$email\nClick it to activate your account.",
                     style     = MaterialTheme.typography.bodyMedium,
-                    color     = OnSurface.copy(alpha = 0.7f),
+                    color     = OnSurface.copy(alpha = 0.6f),
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(40.dp))
@@ -121,44 +159,70 @@ fun SignUpScreen(
             return@Scaffold
         }
 
-        // ── Registration form ────────────────────────────────────
+        // ── Registration form ────────────────────────────────────────────────────
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 28.dp)
                 .verticalScroll(rememberScrollState()),
         ) {
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(20.dp))
 
-            TextButton(
+            // ── Back button ──────────────────────────────────────────────────────
+            IconButton(
                 onClick  = onNavigateBack,
                 modifier = Modifier.padding(start = 0.dp),
             ) {
-                Text(
-                    "← Back",
-                    color = OnSurface.copy(alpha = 0.6f),
-                    style = MaterialTheme.typography.labelLarge,
+                Icon(
+                    imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint               = OnSurface.copy(alpha = 0.7f),
                 )
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(20.dp))
 
-            Text(
-                text       = "Create your account",
-                style      = MaterialTheme.typography.headlineLarge,
-                color      = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text  = "Join the rhythm",
-                style = MaterialTheme.typography.bodyLarge,
-                color = OnSurface.copy(alpha = 0.55f),
-            )
+            // ── Brand block ──────────────────────────────────────────────────────
+            Row(verticalAlignment = Alignment.Top) {
+                Box(
+                    modifier = Modifier
+                        .width(3.dp)
+                        .height(44.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(ElectricPurple),
+                )
+                Spacer(Modifier.width(14.dp))
+                Column {
+                    Text(
+                        text       = "Create your account",
+                        style      = MaterialTheme.typography.headlineLarge,
+                        color      = OnSurface,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text  = "Join the lineup.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = ElectricPurple,
+                    )
+                }
+            }
 
             Spacer(Modifier.height(32.dp))
+            HorizontalDivider(color = SurfaceVariant, thickness = 1.dp)
+            Spacer(Modifier.height(24.dp))
 
-            // ── Email + password ─────────────────────────────
+            // ── Section: Account ─────────────────────────────────────────────────
+            Text(
+                text          = "ACCOUNT",
+                style         = MaterialTheme.typography.labelSmall,
+                color         = OnSurface.copy(alpha = 0.4f),
+                fontWeight    = FontWeight.SemiBold,
+                letterSpacing = 1.5.sp,
+            )
+            Spacer(Modifier.height(10.dp))
+
             AuthTextField(
                 value         = email,
                 onValueChange = { email = it },
@@ -197,7 +261,16 @@ fun SignUpScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // ── Profile fields ───────────────────────────────
+            // ── Section: Profile ─────────────────────────────────────────────────
+            Text(
+                text          = "PROFILE",
+                style         = MaterialTheme.typography.labelSmall,
+                color         = OnSurface.copy(alpha = 0.4f),
+                fontWeight    = FontWeight.SemiBold,
+                letterSpacing = 1.5.sp,
+            )
+            Spacer(Modifier.height(10.dp))
+
             AuthTextField(
                 value         = username,
                 onValueChange = { username = it },
@@ -232,48 +305,41 @@ fun SignUpScreen(
                 keyboardType  = KeyboardType.Phone,
                 imeAction     = ImeAction.Done,
                 onImeAction   = {
-                    viewModel.signUp(
-                        email, password, confirmPassword,
-                        username, firstName, lastName, contactNumber,
-                    )
+                    viewModel.signUp(email, password, confirmPassword, username, firstName, lastName, contactNumber)
                 },
                 enabled = !isLoading,
             )
 
             Spacer(Modifier.height(32.dp))
 
-            // ── Create Account button ────────────────────────
+            // ── Create Account button ────────────────────────────────────────────
             Button(
                 onClick = {
-                    viewModel.signUp(
-                        email, password, confirmPassword,
-                        username, firstName, lastName, contactNumber,
-                    )
+                    viewModel.signUp(email, password, confirmPassword, username, firstName, lastName, contactNumber)
                 },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                enabled  = !isLoading,
-                shape    = MaterialTheme.shapes.small,
-                colors   = ButtonDefaults.buttonColors(
-                    containerColor         = NeonGreen,
+                modifier          = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+                    .scale(btnScale),
+                enabled           = !isLoading,
+                interactionSource = btnInteraction,
+                shape             = MaterialTheme.shapes.small,
+                colors            = ButtonDefaults.buttonColors(
+                    containerColor         = ElectricPurple,
                     contentColor           = OnAccent,
-                    disabledContainerColor = NeonGreen.copy(alpha = 0.4f),
-                    disabledContentColor   = OnAccent.copy(alpha = 0.6f),
+                    disabledContainerColor = ElectricPurple.copy(alpha = 0.35f),
+                    disabledContentColor   = OnAccent.copy(alpha = 0.5f),
                 ),
             ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier    = Modifier.size(20.dp),
-                        color       = OnAccent,
-                        strokeWidth = 2.dp,
-                    )
-                } else {
-                    Text("Create Account", fontWeight = FontWeight.Bold)
-                }
+                Text(
+                    text       = if (isLoading) "Creating account..." else "Create Account",
+                    fontWeight = FontWeight.Bold,
+                )
             }
 
             Spacer(Modifier.height(16.dp))
 
-            // ── Login link ───────────────────────────────────
+            // ── Login link ───────────────────────────────────────────────────────
             Row(
                 modifier              = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
@@ -282,7 +348,7 @@ fun SignUpScreen(
                 Text(
                     "Already have an account?",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = OnSurface.copy(alpha = 0.55f),
+                    color = OnSurface.copy(alpha = 0.5f),
                 )
                 TextButton(onClick = onNavigateBack) {
                     Text(

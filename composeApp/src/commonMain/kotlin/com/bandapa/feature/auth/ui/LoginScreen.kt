@@ -1,6 +1,10 @@
 package com.bandapa.feature.auth.ui
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,12 +14,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -32,6 +36,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -54,8 +60,8 @@ fun LoginScreen(
     onNavigateToSignUp: () -> Unit,
     viewModel: AuthViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
+    val uiState           by viewModel.uiState.collectAsState()
+    val snackbarHostState  = remember { SnackbarHostState() }
 
     var email           by remember { mutableStateOf("") }
     var password        by remember { mutableStateOf("") }
@@ -70,35 +76,58 @@ fun LoginScreen(
         }
     }
 
+    val btnInteraction = remember { MutableInteractionSource() }
+    val btnPressed     by btnInteraction.collectIsPressedAsState()
+    val btnScale       by animateFloatAsState(
+        targetValue   = if (btnPressed) 0.97f else 1f,
+        animationSpec = spring(stiffness = 600f),
+        label         = "loginBtnScale",
+    )
+
     Scaffold(
-        snackbarHost    = { SnackbarHost(snackbarHostState) },
-        containerColor  = Background,
+        snackbarHost   = { SnackbarHost(snackbarHostState) },
+        containerColor = Background,
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 28.dp)
                 .verticalScroll(rememberScrollState()),
         ) {
             Spacer(Modifier.height(72.dp))
 
-            // ── Wordmark ────────────────────────────────────
-            Text(
-                text       = "bandapa",
-                style      = MaterialTheme.typography.displayLarge,
-                color      = ElectricPurple,
-                fontWeight = FontWeight.ExtraBold,
-            )
-            Text(
-                text  = "your band's calendar, unified",
-                style = MaterialTheme.typography.bodyLarge,
-                color = OnSurface.copy(alpha = 0.55f),
-            )
+            // ── Brand block ──────────────────────────────────────────────────────
+            Row(verticalAlignment = Alignment.Top) {
+                Box(
+                    modifier = Modifier
+                        .width(4.dp)
+                        .height(52.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(ElectricPurple),
+                )
+                Spacer(Modifier.width(16.dp))
+                Column {
+                    Text(
+                        text       = "bandapa",
+                        style      = MaterialTheme.typography.displaySmall,
+                        color      = OnSurface,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text  = "your band's calendar, unified",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = ElectricPurple,
+                    )
+                }
+            }
 
-            Spacer(Modifier.height(56.dp))
+            Spacer(Modifier.height(40.dp))
+            HorizontalDivider(color = SurfaceVariant, thickness = 1.dp)
+            Spacer(Modifier.height(28.dp))
 
-            // ── Email ────────────────────────────────────────
+            // ── Email ────────────────────────────────────────────────────────────
             AuthTextField(
                 value         = email,
                 onValueChange = { email = it },
@@ -107,9 +136,9 @@ fun LoginScreen(
                 enabled       = !isLoading,
             )
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(14.dp))
 
-            // ── Password ─────────────────────────────────────
+            // ── Password ─────────────────────────────────────────────────────────
             AuthTextField(
                 value                = password,
                 onValueChange        = { password = it },
@@ -121,9 +150,7 @@ fun LoginScreen(
                                        else PasswordVisualTransformation(),
                 enabled              = !isLoading,
                 trailingIcon = {
-                    TextButton(
-                        onClick = { passwordVisible = !passwordVisible },
-                    ) {
+                    TextButton(onClick = { passwordVisible = !passwordVisible }) {
                         Text(
                             text  = if (passwordVisible) "Hide" else "Show",
                             style = MaterialTheme.typography.labelMedium,
@@ -133,8 +160,7 @@ fun LoginScreen(
                 },
             )
 
-            Spacer(Modifier.height(4.dp))
-
+            Spacer(Modifier.height(6.dp))
             TextButton(
                 onClick  = { /* TODO: forgot password */ },
                 modifier = Modifier.align(Alignment.End),
@@ -142,73 +168,62 @@ fun LoginScreen(
                 Text(
                     "Forgot password?",
                     style = MaterialTheme.typography.labelMedium,
-                    color = OnSurface.copy(alpha = 0.5f),
+                    color = OnSurface.copy(alpha = 0.4f),
                 )
             }
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(12.dp))
 
-            // ── Log In button ────────────────────────────────
+            // ── Log In button ─────────────────────────────────────────────────────
             Button(
-                onClick  = { viewModel.loginWithEmail(email, password) },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                enabled  = !isLoading,
-                shape    = MaterialTheme.shapes.small,
-                colors   = ButtonDefaults.buttonColors(
+                onClick           = { viewModel.loginWithEmail(email, password) },
+                modifier          = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+                    .scale(btnScale),
+                enabled           = !isLoading && email.isNotBlank() && password.isNotBlank(),
+                interactionSource = btnInteraction,
+                shape             = MaterialTheme.shapes.small,
+                colors            = ButtonDefaults.buttonColors(
                     containerColor         = ElectricPurple,
                     contentColor           = OnAccent,
-                    disabledContainerColor = ElectricPurple.copy(alpha = 0.4f),
-                    disabledContentColor   = OnAccent.copy(alpha = 0.6f),
+                    disabledContainerColor = ElectricPurple.copy(alpha = 0.35f),
+                    disabledContentColor   = OnAccent.copy(alpha = 0.5f),
                 ),
             ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier    = Modifier.size(20.dp),
-                        color       = OnAccent,
-                        strokeWidth = 2.dp,
-                    )
-                } else {
-                    Text("Log In", fontWeight = FontWeight.Bold)
-                }
+                Text(
+                    text       = if (isLoading) "Logging in..." else "Log In",
+                    fontWeight = FontWeight.Bold,
+                )
             }
 
             Spacer(Modifier.height(32.dp))
 
-            // ── Divider ──────────────────────────────────────
+            // ── Divider ───────────────────────────────────────────────────────────
             Row(verticalAlignment = Alignment.CenterVertically) {
                 HorizontalDivider(modifier = Modifier.weight(1f), color = SurfaceVariant)
                 Text(
                     text  = "  or continue with  ",
                     style = MaterialTheme.typography.labelSmall,
-                    color = OnSurface.copy(alpha = 0.35f),
+                    color = OnSurface.copy(alpha = 0.3f),
                 )
                 HorizontalDivider(modifier = Modifier.weight(1f), color = SurfaceVariant)
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(14.dp))
 
-            // ── Social buttons ───────────────────────────────
+            // ── Social buttons ────────────────────────────────────────────────────
             Row(
-                modifier             = Modifier.fillMaxWidth(),
+                modifier              = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                SocialButton(
-                    label    = "Google",
-                    modifier = Modifier.weight(1f),
-                    enabled  = !isLoading,
-                    onClick  = { /* TODO: Google OAuth — Phase 2 */ },
-                )
-                SocialButton(
-                    label    = "Apple",
-                    modifier = Modifier.weight(1f),
-                    enabled  = !isLoading,
-                    onClick  = { /* TODO: Apple OAuth — Phase 2 */ },
-                )
+                SocialButton(label = "Google", modifier = Modifier.weight(1f), enabled = !isLoading, onClick = {})
+                SocialButton(label = "Apple",  modifier = Modifier.weight(1f), enabled = !isLoading, onClick = {})
             }
 
-            Spacer(Modifier.height(48.dp))
+            Spacer(Modifier.height(40.dp))
 
-            // ── Sign up link ─────────────────────────────────
+            // ── Sign up link ──────────────────────────────────────────────────────
             Row(
                 modifier              = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
@@ -217,7 +232,7 @@ fun LoginScreen(
                 Text(
                     "New here?",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = OnSurface.copy(alpha = 0.55f),
+                    color = OnSurface.copy(alpha = 0.5f),
                 )
                 TextButton(onClick = onNavigateToSignUp) {
                     Text(
