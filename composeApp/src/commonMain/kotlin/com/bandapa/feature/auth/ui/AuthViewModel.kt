@@ -14,14 +14,20 @@ class AuthViewModel(private val repo: AuthRepository) : ViewModel() {
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
-    fun loginWithEmail(email: String, password: String) {
-        if (email.isBlank() || password.isBlank()) {
-            _uiState.value = AuthUiState.Error("Email and password are required")
+    fun loginWithEmail(identifier: String, password: String) {
+        if (identifier.isBlank() || password.isBlank()) {
+            _uiState.value = AuthUiState.Error("Username/email and password are required")
             return
         }
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
             try {
+                val email = if (identifier.contains("@")) {
+                    identifier.trim()
+                } else {
+                    repo.getEmailByUsername(identifier.trim())
+                        ?: throw Exception("No account found for that username")
+                }
                 repo.signInWithEmail(email, password)
                 _uiState.value = AuthUiState.Success
             } catch (e: Exception) {

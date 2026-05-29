@@ -3,6 +3,7 @@ package com.bandapa.feature.auth.data
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.auth.status.SessionStatus
 import io.github.jan.supabase.auth.user.UserInfo
 import kotlinx.coroutines.flow.StateFlow
@@ -43,6 +44,16 @@ class AuthRepositoryImpl(private val supabase: SupabaseClient) : AuthRepository 
             }
         }
     }
+
+    override suspend fun getEmailByUsername(username: String): String? =
+        try {
+            supabase.postgrest.rpc(
+                "get_email_by_username",
+                buildJsonObject { put("uname", username.lowercase().trim()) }
+            ).decodeAs<String>().takeIf { it.isNotBlank() }
+        } catch (_: Exception) {
+            null
+        }
 
     override suspend fun signOut() {
         supabase.auth.signOut()

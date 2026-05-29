@@ -16,5 +16,6 @@ interface AuthRepository {
         lastName: String,
         contactNumber: String,
     )
+    suspend fun getEmailByUsername(username: String): String?
     suspend fun signOut()
 }

@@ -63,7 +63,7 @@ fun LoginScreen(
     val uiState           by viewModel.uiState.collectAsState()
     val snackbarHostState  = remember { SnackbarHostState() }
 
-    var email           by remember { mutableStateOf("") }
+    var identifier      by remember { mutableStateOf("") }
     var password        by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
@@ -127,12 +127,12 @@ fun LoginScreen(
             HorizontalDivider(color = SurfaceVariant, thickness = 1.dp)
             Spacer(Modifier.height(28.dp))
 
-            // ── Email ────────────────────────────────────────────────────────────
+            // ── Username or Email ─────────────────────────────────────────────────
             AuthTextField(
-                value         = email,
-                onValueChange = { email = it },
-                label         = "Email",
-                keyboardType  = KeyboardType.Email,
+                value         = identifier,
+                onValueChange = { identifier = it },
+                label         = "Username or Email",
+                keyboardType  = KeyboardType.Text,
                 enabled       = !isLoading,
             )
 
@@ -145,7 +145,7 @@ fun LoginScreen(
                 label                = "Password",
                 keyboardType         = KeyboardType.Password,
                 imeAction            = ImeAction.Done,
-                onImeAction          = { viewModel.loginWithEmail(email, password) },
+                onImeAction          = { viewModel.loginWithEmail(identifier, password) },
                 visualTransformation = if (passwordVisible) VisualTransformation.None
                                        else PasswordVisualTransformation(),
                 enabled              = !isLoading,
@@ -176,12 +176,12 @@ fun LoginScreen(
 
             // ── Log In button ─────────────────────────────────────────────────────
             Button(
-                onClick           = { viewModel.loginWithEmail(email, password) },
+                onClick           = { viewModel.loginWithEmail(identifier, password) },
                 modifier          = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
                     .scale(btnScale),
-                enabled           = !isLoading && email.isNotBlank() && password.isNotBlank(),
+                enabled           = !isLoading && identifier.isNotBlank() && password.isNotBlank(),
                 interactionSource = btnInteraction,
                 shape             = MaterialTheme.shapes.small,
                 colors            = ButtonDefaults.buttonColors(
