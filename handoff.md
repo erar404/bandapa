@@ -1,104 +1,149 @@
 # Handoff
 
 ## Goal
-Build **bandapa** — a Kotlin Multiplatform Mobile (KMM) app for musicians to manage shared band calendars with real-time conflict detection. Core features: multi-band event calendars, automated conflict detection when events overlap across bands, voting to resolve conflicts, band management with invite codes.
 
-Acceptance criteria: runs on Android (minimum target), Supabase backend, Compose Multiplatform UI, "Kinetic Sound" Vibrant Noir design system (ElectricPurple `#a020f0`, NeonGreen `#c3f400`, ElectricCyan `#00dbe9`, Background `#131313`, Surface `#1E1E1E`).
-
----
+Full redesign + feature buildout of **bandapa** — a Kotlin Multiplatform (Android + iOS) band calendar app using Compose Multiplatform, Supabase, and Koin. The end state is a production-quality app with:
+- "Kinetic Sound" design language (midnight-green surfaces, electric lime `#6ee304` accents, `OnSurfaceVariant` for secondary text, transparent-container text fields, ExtraBold typography hierarchy)
+- Conflict detection with voting
+- Multi-band calendar (personal + band events)
+- Supabase-backed auth, profiles, bands, events, venues
+- Design following `design-taste-frontend` skill: DESIGN_VARIANCE=8 (asymmetric), MOTION_INTENSITY=6 (spring physics), VISUAL_DENSITY=4 (balanced)
 
 ## Current State
-**Phase 8 complete. BUILD SUCCESSFUL (9m 18s, 39 tasks executed).**
 
-Phases delivered:
-- Phase 1: Auth (Login/SignUp with Supabase)
-- Phase 2: App skeleton (bottom nav, Koin DI, NavGraph)
-- Phase 3: Calendar (month grid, event creation, band filtering)
-- Phase 4: Conflicts (real-time detection, voting, dismiss)
-- Phase 5: Bands page (BandsScreen, BandDetailScreen, edit sheet, member management, invite code copy)
-- Phase 6: Profile tab (editable name, email, band list, sign out) + Venues (DB + venue picker in AddEventSheet)
-- Phase 7: Event detail sheet (tap event → full info), Refresh buttons (Bands + Conflicts), Venue management screen (create/delete, accessible from Profile > Settings > Manage Venues)
-- Phase 8: Input validation hardening, profile trigger fix + backfill, app icon + splash screen
+**Working / Complete:**
+- BUILD SUCCESSFUL — `composeApp-debug.apk` built at `composeApp/build/outputs/apk/debug/composeApp-debug.apk`
+- All changes committed to branch `master`, commit `43d55a09` ("design and functions modifications")
+- Branch is 1 commit ahead of `origin/master` (not pushed)
+- Kinetic Sound palette fully applied: `Color.kt`, `Theme.kt`, `Type.kt`
+- All core screens redesigned: LoginScreen, SignUpScreen, HomeScreen, BandsScreen, ConflictsScreen, CalendarScreen, ProfileScreen, CreateBandScreen
+- RLS infinite-recursion fix live on Supabase (SECURITY DEFINER function `get_my_band_ids()`)
+- Profile tab moved to top-bar avatar+dropdown in `MainScreen.kt`
+- HomeScreen with today's events + bands greeting
+- NoBands placeholder in ConflictsScreen with "Go to Bands" redirect
+- App logo (`static/app-logo.png`) applied to splash screen and Compose resources
+- `bandapa-apk-patch` Claude Code skill at `.claude/skills/bandapa-apk-patch/SKILL.md`
+- Supabase Storage RLS policies allow anon APK upload to `releases` bucket
 
-**APK ready at:** `composeApp/build/outputs/apk/debug/composeApp-debug.apk`
+**Partial / Not done:**
+- Sora font not integrated — `composeApp/src/commonMain/composeResources/font/` directory does not exist; needs `sora_regular.ttf` + `sora_bold.ttf` (font files must be sourced externally). Currently falls back to system sans-serif.
+- APK not pushed to remote (`origin/master` is 1 commit behind)
+- No device/emulator UI testing was done — redesign verified by build only
+- Several secondary screens still use `CircularProgressIndicator` (not yet replaced with `LinearProgressIndicator`): `BandDetailScreen`, `CreateBandScreen`, `JoinBandScreen`, `ProfileScreen`, `VenuesScreen`
 
----
+**Known warnings (non-blocking):**
+- `VenuesScreen.kt:99` uses deprecated `Icons.Default.ArrowBack` — should be `Icons.AutoMirrored.Filled.ArrowBack`
 
 ## Files Actively Being Edited
-No files are mid-change. All Phase 8 files are complete and building.
 
-Key files added/changed in Phase 8:
-- `feature/calendar/ui/CalendarScreen.kt` — AddEventSheet: Save disabled until title non-blank; HH:mm regex validation on start/end times with inline error labels
-- `feature/band/ui/CreateBandScreen.kt` — Create button disabled until name non-blank; YYYY-MM-DD regex validation on dateFormed with inline error
-- `feature/band/ui/JoinBandScreen.kt` — `.trim()` added to all `lookUpBand()` call sites
-- `androidMain/res/drawable/ic_launcher_background.xml` — NEW: solid #131313 vector background
-- `androidMain/res/drawable/ic_launcher_foreground.xml` — NEW: 5-bar soundwave (4× ElectricPurple + NeonGreen center), rounded caps, 108×108dp
-- `androidMain/res/mipmap-anydpi-v26/ic_launcher.xml` — NEW: adaptive icon
-- `androidMain/res/mipmap-anydpi-v26/ic_launcher_round.xml` — NEW: adaptive icon (round)
-- `androidMain/res/values/themes.xml` — NEW: Theme.Bandapa + Theme.Bandapa.Splash (core-splashscreen)
-- `androidMain/AndroidManifest.xml` — added android:icon, android:roundIcon; application theme → Theme.Bandapa; activity theme → Theme.Bandapa.Splash
-- `androidMain/kotlin/com/bandapa/MainActivity.kt` — added `installSplashScreen()` before `super.onCreate()`
-- `gradle/libs.versions.toml` — added core-splashscreen 1.0.1
-- `composeApp/build.gradle.kts` — added `androidx.core.splashscreen` to androidMain deps
-- **Supabase migration** `fix_handle_new_user_and_backfill`: rebuilt `handle_new_user()` with `SET search_path = public` + `public.profiles` schema-qualified ref; backfilled the orphaned profile row for it.arellanoerwin@gmail.com
+All changes are committed. For reference, the files modified across both the prior session and this one:
 
----
+**Auth layer:**
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/auth/ui/components/AuthTextField.kt` — Transparent container colors, `small` shape; removes filled container backgrounds
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/auth/ui/LoginScreen.kt` — Full redesign: left 4dp×52dp lime accent stripe + `displaySmall` ExtraBold wordmark, HorizontalDivider, tactile scale button (97% on press via `animateFloatAsState`+`collectIsPressedAsState`), text-based loading ("Logging in...")
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/auth/ui/SignUpScreen.kt` — Full redesign: `IconButton`+`ArrowBack` back nav, 3dp×44dp accent stripe header, "ACCOUNT"/"PROFILE" uppercase section labels with letterSpacing, email confirmation state with envelope icon in rounded box, same tactile button
+
+**Main app:**
+- `composeApp/src/commonMain/kotlin/com/bandapa/ui/MainScreen.kt` — Profile removed from nav tabs; added HOME tab; TopAppBar with avatar-initials circle; dropdown: name, email, Manage Venues, Sign Out; `ProfileViewModel` injected via `koinViewModel()`
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/home/ui/HomeScreen.kt` — Created from scratch: two-line greeting (headlineMedium + headlineLarge in ElectricPurple), stagger fade+slide-in animations (70ms/60ms per item), `LinearProgressIndicator` for loading, `OnSurfaceVariant` secondary text
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/home/ui/HomeViewModel.kt` — Created from scratch: parallel async load of profile + today's events + bands
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/band/ui/BandsScreen.kt` — Band cards now use 3dp ElectricCyan left accent stripe; `LinearProgressIndicator` replaces spinners; rounded icon-box empty state; `OnSurfaceVariant` secondary text; removed manual refresh button
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/band/ui/CreateBandScreen.kt` — Transparent text field containers
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/conflicts/domain/ConflictsUiState.kt` — Added `NoBands` sealed state
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/conflicts/ui/ConflictsScreen.kt` — Full redesign: 2dp lime top border on conflict cards replaces warning icon header; `LinearProgressIndicator` for loading/refresh; rounded icon-box empty/no-bands states
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/conflicts/ui/ConflictsViewModel.kt` — Checks `bandRepo.getMyBands().isEmpty()` before loading; emits `NoBands` if empty
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/calendar/ui/CalendarScreen.kt` — Targeted: transparent text field containers, ExtraBold month/day/sheet headers, `OnSurfaceVariant` for event secondary text
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/profile/ui/ProfileScreen.kt` — Transparent text field containers; minor secondary text cleanup
+- `composeApp/src/commonMain/kotlin/com/bandapa/navigation/NavGraph.kt` — Splash screen shows `app_logo` Compose resource image
+
+**Theme:**
+- `composeApp/src/commonMain/kotlin/com/bandapa/ui/theme/Color.kt` — Full Kinetic Sound palette; `ElectricPurple = ElectricLime` alias so all existing refs compile
+- `composeApp/src/commonMain/kotlin/com/bandapa/ui/theme/Theme.kt` — Full M3 `darkColorScheme` with all semantic tokens
+- `composeApp/src/commonMain/kotlin/com/bandapa/ui/theme/Type.kt` — Headings 1.2× line-height, body 1.5×; Sora font integration documented in comments
+
+**Assets:**
+- `composeApp/src/androidMain/res/drawable/app_logo.png` — Copied from `static/app-logo.png`
+- `composeApp/src/commonMain/composeResources/drawable/app_logo.png` — Copied from `static/app-logo.png`
+- `composeApp/src/androidMain/res/values/themes.xml` — Splash screen colors updated to `#0f1509`, icon to `@drawable/app_logo`
+
+**Infrastructure:**
+- `composeApp/src/commonMain/kotlin/com/bandapa/core/di/Modules.kt` — Added `homeModule` with `HomeViewModel`; ConflictsViewModel now gets `BandRepository`
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/calendar/data/CalendarRepository.kt` — Added `getTodayEvents(): List<Event>`
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/calendar/data/CalendarRepositoryImpl.kt` — Implemented `getTodayEvents()`
+- `.claude/skills/bandapa-apk-patch/SKILL.md` — Skill that builds APK + uploads to Supabase Storage
+- `DESIGN.md` — Stitch "Kinetic Sound" design system file
 
 ## Failed Attempts
-- **`Route.Bands.path` as post-create/join nav target**: Fixed: `Route.Dashboard.path`.
-- **Core icon set for CalendarMonth, Groups, ChevronLeft/Right**: Fixed: `compose.materialIconsExtended`.
-- **`put("field", if (x.isNullOrBlank()) JsonNull else x.trim())`**: Fixed: `JsonPrimitive(x.trim())`.
-- **`supabase.removeChannel(ch)`**: Fixed: `supabase.realtime.removeChannel(ch)`.
-- **New `LocalClipboard` API**: Fixed: `@Suppress("DEPRECATION") LocalClipboardManager`.
-- **Single migration with cross-table RLS**: Fixed: split into separate ordered migrations.
-- **`defaultSchema = "bandapa-main"`**: Fixed: removed from SupabaseClient.kt.
-- **`on_auth_user_created` trigger without DROP IF EXISTS**: Fixed: prepend drop.
-- **Adding methods with Edit tool (appended outside class)**: Fixed: rewrite entire file with Write.
-- **`PullToRefreshBox` in commonMain (Compose Multiplatform 1.7.3)**: NOT available until CMP 1.8.0. Fixed: replaced with inline refresh IconButton + CircularProgressIndicator in each screen header.
-- **Profile trigger silent failure**: `handle_new_user()` originally lacked `SET search_path` and used unqualified `profiles` ref — caused silent INSERT failure when `name` column didn't exist at sign-up time. Fixed in migration `fix_handle_new_user_and_backfill`.
 
----
+- **What was tried**: Build without setting `JAVA_HOME` — **Why it failed**: Gradle couldn't locate the JDK. Must set `$env:JAVA_HOME = "C:\Program Files (x86)\Android\openjdk\jdk-17.0.8.101-hotspot"` before every `gradlew.bat` call.
+- **What was tried**: Uploading APK to Supabase Storage with only SELECT policy — **Why it failed**: Storage needs INSERT + UPDATE + SELECT RLS policies on `storage.objects` for the `releases` bucket. All three migrations have been applied and are live.
+- **What was tried**: Spawning Explore/Agent sub-agents for codebase search — **Why it failed**: User rejected agent tool calls. Use direct tools (Read, Grep, Glob) for all codebase exploration.
+- **What was tried**: Initial RLS policies for `band_members` that queried `band_members` in their own `USING` clause — **Why it failed**: Caused infinite recursion. Fixed by creating `SECURITY DEFINER` function `get_my_band_ids()` that bypasses RLS, then using it in policies.
 
-## Remaining Work
+## Next Step
 
-**D. APK install + smoke test** (device needed):
-- Install: `C:\Users\Arellano\AppData\Local\Android\Sdk\platform-tools\adb.exe install composeApp\build\outputs\apk\debug\composeApp-debug.apk`
-- Check: splash screen shows (dark bg + soundwave bars), icon appears on launcher, sign-in works, profile tab shows "Erwin Roy Arellano"
+**Push the commit to remote, then install the APK on a device for visual verification:**
 
-**E. Deep-link test** (device needed):
-- `adb shell am start -W -a android.intent.action.VIEW -d "https://bandapa.app/invite/TESTCODE" com.bandapa`
-- Should open JoinBandScreen with the code pre-filled
+```powershell
+git push origin master
+```
 
-**F. Fix VenuesScreen ArrowBack deprecation warning** (cosmetic, non-blocking):
-- `VenuesScreen.kt:99` — `Icons.Filled.ArrowBack` → `Icons.AutoMirrored.Filled.ArrowBack`
+Then install `composeApp/build/outputs/apk/debug/composeApp-debug.apk` on an Android device and verify:
+1. Login screen shows the asymmetric lime accent stripe + "bandapa" wordmark
+2. Button scales to 97% on press (tactile feedback)
+3. Home screen shows two-line greeting with display name in lime
+4. Band cards have ElectricCyan left accent stripe
+5. Conflict cards have 2dp lime top border
 
-**G. Release / Play Store prep** (if going further):
-- `isMinifyEnabled = true` + ProGuard rules for release build
-- Signing config (`keystore` + `build.gradle.kts` signingConfigs block)
-- App bundle: `.\gradlew.bat :composeApp:bundleRelease`
+**Or rebuild + upload APK to Supabase Storage for OTA distribution:**
+```
+/bandapa-apk-patch
+```
 
----
+**Secondary cleanup** — replace remaining `CircularProgressIndicator` usages in `BandDetailScreen.kt`, `JoinBandScreen.kt`, `VenuesScreen.kt`, `ProfileScreen.kt` with `LinearProgressIndicator`. Pattern to follow:
+```kotlin
+// Replace:
+Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    CircularProgressIndicator(color = ElectricPurple)
+}
+// With:
+LinearProgressIndicator(
+    modifier   = Modifier.fillMaxWidth(),
+    color      = ElectricPurple,
+    trackColor = SurfaceVariant,
+)
+```
 
 ## Context & Gotchas
-- **JDK**: `C:\Program Files (x86)\Android\openjdk\jdk-17.0.8.101-hotspot`
-- **Android SDK (user-writable)**: `C:\Users\Arellano\AppData\Local\Android\Sdk` — API 35 installed
-- **adb full path**: `C:\Users\Arellano\AppData\Local\Android\Sdk\platform-tools\adb.exe`
-- **No git repo, no Android Studio.** Build: `.\gradlew.bat :composeApp:assembleDebug`
-- **Koin ViewModel with parameters**: `viewModel { params -> VM(params.get(), get(), get()) }` in module
-- **Supabase SessionStatus**: `SessionStatus.Initializing` (renamed in supabase-kt 3.x)
-- **Icons**: `compose.materialIconsExtended` already in commonMain — do NOT add again
-- **Realtime cleanup**: `supabase.realtime.removeChannel(ch)`
-- **Clipboard**: `@Suppress("DEPRECATION") LocalClipboardManager`
-- **All tables in `public` schema** — no `defaultSchema` override in SupabaseClient
-- **`menuAnchor(MenuAnchorType.PrimaryNotEditable)`** required for ExposedDropdownMenu
-- **`Icons.Default.ArrowBack` is deprecated** — use `Icons.AutoMirrored.Filled.ArrowBack` (warning, not blocking)
-- **Supabase project ref**: `rrfelwwoypouqcjbdzrb`
-- **Stitch design project**: ID `3705630547659865469`, design system "Kinetic Sound Vibrant Noir"
-- **KMM stack**: Compose Multiplatform 1.7.3, AGP 8.7.3, Gradle 8.10.2, Supabase-kt 3.1.4, Koin 4.1.0, kotlinx-datetime 0.6.1, core-splashscreen 1.0.1
-- **Profile.kt lives in `feature/band/domain/`** — reused by ProfileRepository
-- **VenuesScreen is shown within the Profile tab** via a local `showVenues` state flag (no NavGraph change needed)
-- **APK output path**: `composeApp/build/outputs/apk/debug/composeApp-debug.apk`
-- **`PullToRefreshBox` is NOT available in CMP 1.7.3 commonMain** — don't try to use it; will resolve in CMP 1.8.0+
-- **Splash screen theme parent**: `Theme.SplashScreen` (from core-splashscreen lib) — activity uses `Theme.Bandapa.Splash`, application uses `Theme.Bandapa`
-- **Icon design**: 5-bar soundwave equalizer, 108×108dp viewport, bars at x=29/40/51/62/73 (6dp wide, 5dp gap), center bar NeonGreen, outer bars ElectricPurple, all bars have r=2 rounded corners
-- **Supabase `handle_new_user` function**: must have `SET search_path = public` and `public.profiles` (schema-qualified) — bare `profiles` silently fails in SECURITY DEFINER context
+
+**Build environment:**
+- Must set `$env:JAVA_HOME = "C:\Program Files (x86)\Android\openjdk\jdk-17.0.8.101-hotspot"` before any `gradlew.bat` call
+- Build command: `.\gradlew.bat :composeApp:assembleDebug --no-daemon`
+- Build takes ~2-3 minutes cold, ~30s with configuration cache
+
+**Design system:**
+- `ElectricPurple` is a Kotlin alias for `ElectricLime` (`#6ee304`). All existing code that references `ElectricPurple` gets the lime color — this is intentional for backwards compatibility without a mass rename.
+- `OnAccent` = `OnPrimary` = `#083900` (dark green text on lime buttons)
+- `NeonGreen` = `OnPrimaryContainer` = `#89ff4c` (personal event accent, brighter lime)
+- `ElectricCyan` = `#a0cfd2` (band event accent, muted teal)
+- `OnSurfaceVariant` = `#c2c9b7` (secondary text — prefer over `OnSurface.copy(alpha = ...)`)
+- Transparent containers: all text fields should use `focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, disabledContainerColor = Color.Transparent`
+
+**Supabase:**
+- Project ref: `rrfelwwoypouqcjbdzrb`
+- APK upload URL: `https://rrfelwwoypouqcjbdzrb.supabase.co/storage/v1/object/public/releases/bandapa-latest.apk`
+- Anon key is in `local.properties` as `supabase.anon.key`
+- `get_my_band_ids()` SECURITY DEFINER function is the RLS recursion fix — do not revert or replace with inline subqueries
+
+**Sora font:**
+- To activate: add `sora_regular.ttf` + `sora_bold.ttf` to `composeApp/src/commonMain/composeResources/font/`
+- Then declare font family in `Type.kt` (instructions are in comments at the top of that file)
+- Source fonts from Google Fonts: https://fonts.google.com/specimen/Sora
+
+**Stitch design:**
+- "Kinetic Sound" project ID: `3705630547659865469`
+- `DESIGN.md` in project root is the source of truth for Stitch screen generation
+
+**VenuesScreen deprecation warning:**
+- `VenuesScreen.kt:99` — change `Icons.Default.ArrowBack` to `Icons.AutoMirrored.Filled.ArrowBack` and add `import androidx.compose.material.icons.automirrored.filled.ArrowBack`
+- This is cosmetic (compiler warning only, does not break the build)

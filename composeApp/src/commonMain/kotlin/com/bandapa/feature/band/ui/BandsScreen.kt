@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -62,6 +63,7 @@ fun BandsScreen(
     onNavigateToBandDetail: (bandId: String) -> Unit,
     onNavigateToCreateBand: () -> Unit,
     onNavigateToJoinBand: () -> Unit,
+    onNavigateToConflicts: () -> Unit,
     viewModel: BandsListViewModel = koinViewModel(),
 ) {
     val bands        by viewModel.bands.collectAsState()
@@ -114,6 +116,9 @@ fun BandsScreen(
                 color      = OnSurface,
             )
 
+            Spacer(Modifier.height(12.dp))
+            ConflictsShortcutRow(onClick = onNavigateToConflicts)
+
             // Refresh indicator
             if (isRefreshing) {
                 LinearProgressIndicator(
@@ -143,6 +148,54 @@ fun BandsScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ConflictsShortcutRow(onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(Surface)
+            .clickable(onClick = onClick)
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(ElectricPurple.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector        = Icons.Default.Warning,
+                contentDescription = null,
+                tint               = ElectricPurple,
+                modifier           = Modifier.size(18.dp),
+            )
+        }
+        Spacer(Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                "Conflicts",
+                style      = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color      = OnSurface,
+            )
+            Text(
+                "Check schedule overlaps",
+                style = MaterialTheme.typography.bodySmall,
+                color = OnSurfaceVariant,
+            )
+        }
+        Icon(
+            imageVector        = Icons.Default.ChevronRight,
+            contentDescription = null,
+            tint               = OnSurface.copy(alpha = 0.35f),
+            modifier           = Modifier.size(20.dp),
+        )
     }
 }
 

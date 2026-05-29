@@ -12,7 +12,6 @@ import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -57,10 +56,10 @@ import com.bandapa.ui.theme.SurfaceVariant
 import org.koin.compose.viewmodel.koinViewModel
 
 enum class MainTab(val label: String, val icon: ImageVector) {
-    HOME     ("Home",      Icons.Default.Home),
-    CALENDAR ("Calendar",  Icons.Default.CalendarMonth),
-    BANDS    ("Bands",     Icons.Default.Groups),
-    CONFLICTS("Conflicts", Icons.Default.Warning),
+    HOME    ("Home",     Icons.Default.Home),
+    CALENDAR("Calendar", Icons.Default.CalendarMonth),
+    BANDS   ("Bands",    Icons.Default.Groups),
+    VENUES  ("Venues",   Icons.Default.LocationOn),
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -73,12 +72,12 @@ fun MainScreen(
 ) {
     var selectedTab  by rememberSaveable { mutableStateOf(MainTab.HOME) }
     var profileMenuExpanded by remember { mutableStateOf(false) }
-    var showVenues   by remember { mutableStateOf(false) }
+    var showConflicts by remember { mutableStateOf(false) }
 
     val profileState by profileViewModel.uiState.collectAsState()
 
-    if (showVenues) {
-        VenuesScreen(onNavigateBack = { showVenues = false })
+    if (showConflicts) {
+        ConflictsScreen(onGoToBands = { showConflicts = false })
         return
     }
 
@@ -147,24 +146,6 @@ fun MainScreen(
                             HorizontalDivider(color = OnSurface.copy(alpha = 0.1f))
 
                             DropdownMenuItem(
-                                text    = { Text("Manage Venues", color = OnSurface) },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.LocationOn,
-                                        contentDescription = null,
-                                        tint     = OnSurface.copy(alpha = 0.7f),
-                                        modifier = Modifier.size(18.dp),
-                                    )
-                                },
-                                onClick = {
-                                    profileMenuExpanded = false
-                                    showVenues = true
-                                },
-                            )
-
-                            HorizontalDivider(color = OnSurface.copy(alpha = 0.1f))
-
-                            DropdownMenuItem(
                                 text    = { Text("Sign Out", color = ErrorRed) },
                                 leadingIcon = {
                                     Icon(
@@ -212,14 +193,13 @@ fun MainScreen(
             when (selectedTab) {
                 MainTab.HOME      -> HomeScreen()
                 MainTab.CALENDAR  -> CalendarScreen()
-                MainTab.BANDS     -> BandsScreen(
+                MainTab.BANDS  -> BandsScreen(
                     onNavigateToBandDetail = onNavigateToBandDetail,
                     onNavigateToCreateBand = onNavigateToCreateBand,
                     onNavigateToJoinBand   = onNavigateToJoinBand,
+                    onNavigateToConflicts  = { showConflicts = true },
                 )
-                MainTab.CONFLICTS -> ConflictsScreen(
-                    onGoToBands = { selectedTab = MainTab.BANDS },
-                )
+                MainTab.VENUES -> VenuesScreen()
             }
         }
     }
