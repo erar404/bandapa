@@ -11,6 +11,8 @@ interface BandRepository {
         genres: List<String>,
         dateFormed: String?,
         label: String?,
+        spotifyUrl: String?,
+        imageBytes: ByteArray?,
     ): Band
 
     suspend fun getBandByInviteCode(inviteCode: String): Band

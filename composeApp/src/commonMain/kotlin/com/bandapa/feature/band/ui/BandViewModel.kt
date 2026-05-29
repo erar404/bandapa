@@ -20,15 +20,16 @@ class BandViewModel(private val repo: BandRepository) : ViewModel() {
     fun createBand(
         name: String,
         description: String,
-        genresRaw: String,
+        genres: List<String>,
         dateFormed: String,
         label: String,
+        spotifyUrl: String,
+        imageBytes: ByteArray?,
     ) {
         if (name.isBlank()) {
             _uiState.value = BandUiState.Error("Band name is required")
             return
         }
-        val genres = genresRaw.split(",").map { it.trim() }.filter { it.isNotBlank() }
         viewModelScope.launch {
             _uiState.value = BandUiState.Loading
             try {
@@ -38,6 +39,8 @@ class BandViewModel(private val repo: BandRepository) : ViewModel() {
                     genres      = genres,
                     dateFormed  = dateFormed.takeIf { it.isNotBlank() },
                     label       = label.takeIf { it.isNotBlank() },
+                    spotifyUrl  = spotifyUrl.takeIf { it.isNotBlank() },
+                    imageBytes  = imageBytes,
                 )
                 _uiState.value = BandUiState.BandCreated(band)
             } catch (e: Exception) {

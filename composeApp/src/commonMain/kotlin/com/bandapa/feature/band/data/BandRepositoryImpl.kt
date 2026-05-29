@@ -9,6 +9,7 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.storage.storage
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonNull
@@ -26,9 +27,11 @@ class BandRepositoryImpl(private val supabase: SupabaseClient) : BandRepository 
         genres: List<String>,
         dateFormed: String?,
         label: String?,
+        spotifyUrl: String?,
+        imageBytes: ByteArray?,
     ): Band {
         val userId = supabase.auth.currentUserOrNull()?.id ?: error("Not authenticated")
-        return supabase.from("bands").insert(
+        var band = supabase.from("bands").insert(
             buildJsonObject {
                 put("name", name.trim())
                 put("owner_id", userId)
@@ -36,8 +39,23 @@ class BandRepositoryImpl(private val supabase: SupabaseClient) : BandRepository 
                 if (genres.isNotEmpty()) put("genres", buildJsonArray { genres.forEach { add(it.trim()) } })
                 dateFormed?.takeIf { it.isNotBlank() }?.let { put("date_formed", it) }
                 label?.takeIf { it.isNotBlank() }?.let { put("label", it.trim()) }
+                spotifyUrl?.takeIf { it.isNotBlank() }?.let { put("spotify_url", it.trim()) }
             }
         ) { select() }.decodeSingle<Band>()
+
+        if (imageBytes != null) {
+            val path = "${band.id}/cover.jpg"
+            supabase.storage.from("band-images").upload(path, imageBytes) { upsert = true }
+            val imageUrl = supabase.storage.from("band-images").publicUrl(path)
+            band = supabase.from("bands").update(
+                buildJsonObject { put("image_url", imageUrl) }
+            ) {
+                filter { eq("id", band.id) }
+                select()
+            }.decodeSingle<Band>()
+        }
+
+        return band
     }
 
     override suspend fun getBandByInviteCode(inviteCode: String): Band =
