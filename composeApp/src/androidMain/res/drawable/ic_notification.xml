@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Notification small icon — white guitar silhouette, transparent bg.
+  Android requires small notification icons to be white/alpha only.
+  24dp canvas, content centred in 20dp safe zone.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Guitar body (lower bout) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,14 C9.8,14 8,15.8 8,18 C8,20.2 9.8,22 12,22 C14.2,22 16,20.2 16,18 C16,15.8 14.2,14 12,14 Z"/>
+
+    <!-- Guitar waist / neck join -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M11,10 L13,10 L13,15 L11,15 Z"/>
+
+    <!-- Guitar neck -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M11.2,4 L12.8,4 L13,10 L11,10 Z"/>
+
+    <!-- Headstock -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M10.5,2 L13.5,2 L13.5,4.5 L10.5,4.5 Z"/>
+
+    <!-- Sound hole -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="0.8"
+        android:pathData="M12,17 A1,1 0 1,0 12,19 A1,1 0 1,0 12,17 Z"/>
+
+    <!-- Tuning peg left -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M10,2 A0.8,0.8 0 1,0 10,3.6 A0.8,0.8 0 1,0 10,2 Z"/>
+
+    <!-- Tuning peg right -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M14,2 A0.8,0.8 0 1,0 14,3.6 A0.8,0.8 0 1,0 14,2 Z"/>
+
+</vector>

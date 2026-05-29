@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.LinearProgressIndicator
@@ -39,10 +40,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import com.bandapa.feature.announcements.domain.Announcement
 import com.bandapa.feature.band.domain.Band
 import com.bandapa.feature.calendar.domain.Event
 import com.bandapa.ui.theme.Background
@@ -119,6 +123,32 @@ fun HomeScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = OnSurfaceVariant,
                 )
+
+                // ─── Announcements ────────────────────────────────────────────────
+                if (uiState.announcements.isNotEmpty()) {
+                    Spacer(Modifier.height(32.dp))
+                    SectionLabel(
+                        icon  = Icons.Default.Campaign,
+                        title = "Announcements",
+                        tint  = ElectricCyan,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        uiState.announcements.forEachIndexed { index, announcement ->
+                            var visible by remember(announcement.id) { mutableStateOf(false) }
+                            LaunchedEffect(announcement.id) {
+                                delay(index.toLong() * 60L)
+                                visible = true
+                            }
+                            AnimatedVisibility(
+                                visible = visible,
+                                enter   = fadeIn() + slideInVertically { it / 4 },
+                            ) {
+                                AnnouncementCard(announcement)
+                            }
+                        }
+                    }
+                }
 
                 Spacer(Modifier.height(32.dp))
 
@@ -267,6 +297,62 @@ private fun TodayEventCard(event: Event) {
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.width(76.dp),
                 )
+            }
+        }
+    }
+}
+
+// ─── Announcement card ────────────────────────────────────────────────────────
+
+@Composable
+private fun AnnouncementCard(announcement: Announcement) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(Surface),
+    ) {
+        if (!announcement.imageUrl.isNullOrBlank()) {
+            AsyncImage(
+                model              = announcement.imageUrl,
+                contentDescription = null,
+                contentScale       = ContentScale.Crop,
+                modifier           = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp),
+            )
+        }
+        Row(
+            modifier          = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(3.dp)
+                    .height(if (announcement.body.isBlank()) 22.dp else 44.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(ElectricCyan),
+            )
+            Spacer(Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text       = announcement.title,
+                    style      = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color      = OnSurface,
+                    maxLines   = 2,
+                    overflow   = TextOverflow.Ellipsis,
+                )
+                if (announcement.body.isNotBlank()) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text     = announcement.body,
+                        style    = MaterialTheme.typography.bodySmall,
+                        color    = OnSurfaceVariant,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
     }

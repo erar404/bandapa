@@ -13,6 +13,7 @@ buildkonfig            = "0.15.2"
 activity-compose       = "1.9.3"
 lifecycle              = "2.8.4"
 core-splashscreen      = "1.0.1"
+coil                   = "3.1.0"
 
 [libraries]
 # AndroidX
@@ -45,6 +46,10 @@ koin-core                      = { group = "io.insert-koin", name = "koin-core",
 koin-compose-multiplatform     = { group = "io.insert-koin", name = "koin-compose",                version.ref = "koin" }
 koin-compose-viewmodel         = { group = "io.insert-koin", name = "koin-compose-viewmodel",      version.ref = "koin" }
 koin-android                   = { group = "io.insert-koin", name = "koin-android",                version.ref = "koin" }
+
+# Coil (KMP image loading)
+coil-compose           = { group = "io.coil-kt.coil3", name = "coil-compose",         version.ref = "coil" }
+coil-network-ktor      = { group = "io.coil-kt.coil3", name = "coil-network-ktor3",    version.ref = "coil" }
 
 # Navigation (JetBrains KMP port of Jetpack Navigation)
 navigation-compose             = { group = "org.jetbrains.androidx.navigation", name = "navigation-compose", version.ref = "navigation-compose" }

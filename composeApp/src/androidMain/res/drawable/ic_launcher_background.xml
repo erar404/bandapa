@@ -4,8 +4,7 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Solid #131313 (Background) fill -->
     <path
-        android:fillColor="#131313"
+        android:fillColor="#2D6A2D"
         android:pathData="M0,0 H108 V108 H0 Z"/>
 </vector>

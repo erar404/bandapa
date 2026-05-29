@@ -1,0 +1,10 @@
+package com.bandapa.core.di
+
+import com.bandapa.core.notifications.IosNotificationService
+import com.bandapa.core.notifications.NotificationService
+import org.koin.core.module.Module
+import org.koin.dsl.module
+
+actual fun platformModule(): Module = module {
+    single<NotificationService> { IosNotificationService() }
+}

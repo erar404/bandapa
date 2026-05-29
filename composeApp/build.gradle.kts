@@ -70,6 +70,9 @@ kotlin {
 
             implementation(libs.lifecycle.viewmodel)
             implementation(libs.lifecycle.viewmodel.compose)
+
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor)
         }
 
         iosMain.dependencies {
@@ -116,8 +119,9 @@ buildkonfig {
             val f = rootProject.file("local.properties")
             if (f.exists()) load(f.inputStream())
         }
-        buildConfigField(STRING, "SUPABASE_URL",      props.getProperty("supabase.url",      ""))
-        buildConfigField(STRING, "SUPABASE_ANON_KEY", props.getProperty("supabase.anon_key", ""))
+        buildConfigField(STRING, "SUPABASE_URL",        props.getProperty("supabase.url",          ""))
+        buildConfigField(STRING, "SUPABASE_ANON_KEY",  props.getProperty("supabase.anon_key",     ""))
+        buildConfigField(STRING, "GOOGLE_MAPS_API_KEY", props.getProperty("google.maps.api_key", ""))
     }
 }
 

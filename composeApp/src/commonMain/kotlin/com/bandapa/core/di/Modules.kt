@@ -1,6 +1,9 @@
 package com.bandapa.core.di
 
 import com.bandapa.core.supabase.supabaseClient
+import com.bandapa.core.notifications.NotificationService
+import com.bandapa.feature.announcements.data.AnnouncementRepository
+import com.bandapa.feature.announcements.data.AnnouncementRepositoryImpl
 import com.bandapa.feature.auth.data.AuthRepository
 import com.bandapa.feature.auth.data.AuthRepositoryImpl
 import com.bandapa.feature.auth.ui.AuthViewModel
@@ -19,6 +22,7 @@ import com.bandapa.feature.home.ui.HomeViewModel
 import com.bandapa.feature.profile.data.ProfileRepository
 import com.bandapa.feature.profile.data.ProfileRepositoryImpl
 import com.bandapa.feature.profile.ui.ProfileViewModel
+import com.bandapa.feature.venues.data.GooglePlacesClient
 import com.bandapa.feature.venues.data.VenueRepository
 import com.bandapa.feature.venues.data.VenueRepositoryImpl
 import com.bandapa.feature.venues.ui.VenueViewModel
@@ -53,7 +57,8 @@ val conflictsModule = module {
 
 val venueModule = module {
     single<VenueRepository> { VenueRepositoryImpl(get()) }
-    viewModel { VenueViewModel(get()) }
+    single { GooglePlacesClient(com.bandapa.BuildKonfig.GOOGLE_MAPS_API_KEY) }
+    viewModel { VenueViewModel(get(), get()) }
 }
 
 val profileModule = module {
@@ -61,8 +66,20 @@ val profileModule = module {
     viewModel { ProfileViewModel(get(), get(), get()) }
 }
 
+val announcementModule = module {
+    single<AnnouncementRepository> { AnnouncementRepositoryImpl(get()) }
+}
+
 val homeModule = module {
-    viewModel { HomeViewModel(get(), get(), get()) }
+    viewModel {
+        HomeViewModel(
+            profileRepo         = get<ProfileRepository>(),
+            bandRepo            = get<BandRepository>(),
+            calendarRepo        = get<CalendarRepository>(),
+            announcementRepo    = get<AnnouncementRepository>(),
+            notificationService = get<NotificationService>(),
+        )
+    }
 }
 
 fun appModules() = listOf(
@@ -73,5 +90,7 @@ fun appModules() = listOf(
     conflictsModule,
     venueModule,
     profileModule,
+    announcementModule,
     homeModule,
+    platformModule(),
 )

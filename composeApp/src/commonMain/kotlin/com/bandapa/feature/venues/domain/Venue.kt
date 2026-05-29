@@ -9,6 +9,8 @@ data class Venue(
     val name: String = "",
     val address: String? = null,
     val city: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
     @SerialName("created_by") val createdBy: String? = null,
     @SerialName("created_at") val createdAt: String = "",
 )

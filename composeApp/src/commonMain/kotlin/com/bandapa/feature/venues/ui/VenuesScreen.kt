@@ -1,6 +1,7 @@
 package com.bandapa.feature.venues.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,19 +19,20 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -52,15 +54,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import com.bandapa.BuildKonfig
+import com.bandapa.feature.venues.data.PlacePrediction
+import com.bandapa.feature.venues.data.staticMapUrl
 import com.bandapa.feature.venues.domain.Venue
 import com.bandapa.ui.theme.Background
 import com.bandapa.ui.theme.ElectricCyan
 import com.bandapa.ui.theme.ElectricPurple
 import com.bandapa.ui.theme.OnAccent
 import com.bandapa.ui.theme.OnSurface
+import com.bandapa.ui.theme.OnSurfaceVariant
 import com.bandapa.ui.theme.Surface
+import com.bandapa.ui.theme.SurfaceContainerHigh
 import com.bandapa.ui.theme.SurfaceVariant
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -111,11 +121,7 @@ fun VenuesScreen(
                         )
                     } else {
                         IconButton(onClick = viewModel::refresh) {
-                            Icon(
-                                imageVector        = Icons.Default.Refresh,
-                                contentDescription = "Refresh",
-                                tint               = OnSurface.copy(alpha = 0.5f),
-                            )
+                            Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = OnSurface.copy(alpha = 0.5f))
                         }
                     }
                 },
@@ -144,42 +150,22 @@ fun VenuesScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector        = Icons.Default.LocationOn,
-                            contentDescription = null,
-                            tint               = ElectricCyan,
-                            modifier           = Modifier.size(52.dp),
-                        )
+                        Icon(Icons.Default.LocationOn, null, tint = ElectricCyan, modifier = Modifier.size(52.dp))
                         Spacer(Modifier.height(12.dp))
-                        Text(
-                            "No venues yet",
-                            style      = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color      = OnSurface,
-                        )
+                        Text("No venues yet", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = OnSurface)
                         Spacer(Modifier.height(4.dp))
-                        Text(
-                            "Add venues to attach them to events.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = OnSurface.copy(alpha = 0.5f),
-                        )
+                        Text("Add venues to attach them to events.", style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(alpha = 0.5f))
                     }
                 }
             }
             else -> {
                 LazyColumn(
-                    modifier              = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement   = Arrangement.spacedBy(10.dp),
+                    modifier            = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     item { Spacer(Modifier.height(4.dp)) }
                     items(uiState.venues, key = { it.id }) { venue ->
-                        VenueRow(
-                            venue    = venue,
-                            onDelete = { viewModel.deleteVenue(venue.id) },
-                        )
+                        VenueRow(venue = venue, onDelete = { viewModel.deleteVenue(venue.id) })
                     }
                     item { Spacer(Modifier.height(80.dp)) }
                 }
@@ -189,21 +175,26 @@ fun VenuesScreen(
 
     if (showAddSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showAddSheet = false },
-            sheetState       = sheetState,
-            containerColor   = Surface,
+            onDismissRequest = {
+                showAddSheet = false
+                viewModel.resetAddForm()
+            },
+            sheetState     = sheetState,
+            containerColor = Surface,
         ) {
             AddVenueSheet(
-                isSaving  = uiState.isSaving,
-                onSave    = { name, address, city ->
-                    viewModel.addVenue(name, address, city)
+                uiState   = uiState,
+                viewModel = viewModel,
+                onDismiss = {
                     showAddSheet = false
+                    viewModel.resetAddForm()
                 },
-                onDismiss = { showAddSheet = false },
             )
         }
     }
 }
+
+// ─── Venue row ────────────────────────────────────────────────────────────────
 
 @Composable
 private fun VenueRow(venue: Venue, onDelete: () -> Unit) {
@@ -216,51 +207,43 @@ private fun VenueRow(venue: Venue, onDelete: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            modifier         = Modifier
-                .size(36.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(ElectricCyan.copy(alpha = 0.12f)),
+            modifier         = Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)).background(ElectricCyan.copy(alpha = 0.12f)),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(Icons.Default.LocationOn, contentDescription = null, tint = ElectricCyan, modifier = Modifier.size(18.dp))
+            Icon(Icons.Default.LocationOn, null, tint = ElectricCyan, modifier = Modifier.size(18.dp))
         }
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text       = venue.name,
-                style      = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-                color      = OnSurface,
-            )
+            Text(venue.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = OnSurface)
             val subtitle = listOfNotNull(venue.address, venue.city).joinToString(", ")
             if (subtitle.isNotEmpty()) {
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(alpha = 0.5f))
+            }
+            if (venue.latitude != null && venue.longitude != null) {
                 Text(
-                    text  = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = OnSurface.copy(alpha = 0.5f),
+                    text  = "${"%.5f".format(venue.latitude)}, ${"%.5f".format(venue.longitude)}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = ElectricCyan.copy(alpha = 0.7f),
                 )
             }
         }
         IconButton(onClick = onDelete) {
-            Icon(
-                imageVector        = Icons.Default.Delete,
-                contentDescription = "Delete venue",
-                tint               = OnSurface.copy(alpha = 0.4f),
-                modifier           = Modifier.size(18.dp),
-            )
+            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = OnSurface.copy(alpha = 0.4f), modifier = Modifier.size(18.dp))
         }
     }
 }
 
+// ─── Add venue sheet ──────────────────────────────────────────────────────────
+
 @Composable
 private fun AddVenueSheet(
-    isSaving: Boolean,
-    onSave: (name: String, address: String, city: String) -> Unit,
+    uiState: VenueUiState,
+    viewModel: VenueViewModel,
     onDismiss: () -> Unit,
 ) {
-    var name    by remember { mutableStateOf("") }
-    var address by remember { mutableStateOf("") }
-    var city    by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
+    var city by remember { mutableStateOf("") }
+    val apiKey = BuildKonfig.GOOGLE_MAPS_API_KEY
 
     Column(
         modifier = Modifier
@@ -269,24 +252,92 @@ private fun AddVenueSheet(
             .padding(bottom = 32.dp)
             .verticalScroll(rememberScrollState()),
     ) {
-        Text(
-            "Add Venue",
-            style      = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color      = OnSurface,
-        )
+        Text("Add Venue", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = OnSurface)
         Spacer(Modifier.height(20.dp))
 
-        VenueTextField(value = name,    onValueChange = { name    = it }, label = "Name *",             enabled = !isSaving)
+        // ── Name ──────────────────────────────────────────────────────────────
+        VenueTextField(value = name, onValueChange = { name = it }, label = "Name *", enabled = !uiState.isSaving)
         Spacer(Modifier.height(12.dp))
-        VenueTextField(value = address, onValueChange = { address = it }, label = "Address (optional)",  enabled = !isSaving)
+
+        // ── Address with autocomplete ─────────────────────────────────────────
+        OutlinedTextField(
+            value         = uiState.addressQuery,
+            onValueChange = { viewModel.onAddressQueryChanged(it) },
+            label         = { Text("Address") },
+            enabled       = !uiState.isSaving,
+            singleLine    = true,
+            modifier      = Modifier.fillMaxWidth(),
+            shape         = RoundedCornerShape(10.dp),
+            leadingIcon   = {
+                Icon(Icons.Default.Search, contentDescription = null, tint = OnSurfaceVariant, modifier = Modifier.size(18.dp))
+            },
+            trailingIcon  = {
+                if (uiState.isGeocoding) {
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), color = ElectricPurple, strokeWidth = 2.dp)
+                }
+            },
+            colors        = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor   = ElectricPurple,
+                focusedLabelColor    = ElectricPurple,
+                unfocusedBorderColor = SurfaceVariant,
+                focusedTextColor     = OnSurface,
+                unfocusedTextColor   = OnSurface,
+                cursorColor          = ElectricPurple,
+            ),
+        )
+
+        // Suggestions dropdown (shown directly below the field)
+        if (uiState.suggestions.isNotEmpty()) {
+            Spacer(Modifier.height(4.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(SurfaceContainerHigh),
+            ) {
+                uiState.suggestions.take(5).forEachIndexed { index, prediction ->
+                    SuggestionRow(
+                        prediction  = prediction,
+                        onClick     = { viewModel.onPlaceSelected(prediction) },
+                        showDivider = index < uiState.suggestions.size - 1,
+                    )
+                }
+            }
+        }
+
+        // ── Lat / Lng (read-only, auto-filled) ────────────────────────────────
+        uiState.geocoded?.let { loc ->
+            Spacer(Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                CoordField("Latitude",  "%.6f".format(loc.lat), Modifier.weight(1f))
+                CoordField("Longitude", "%.6f".format(loc.lng), Modifier.weight(1f))
+            }
+        }
+
+        // ── Map preview ───────────────────────────────────────────────────────
+        if (uiState.geocoded != null && apiKey.isNotBlank()) {
+            val loc = uiState.geocoded
+            Spacer(Modifier.height(12.dp))
+            AsyncImage(
+                model              = staticMapUrl(loc.lat, loc.lng, apiKey),
+                contentDescription = "Map preview",
+                contentScale       = ContentScale.Crop,
+                modifier           = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .clip(RoundedCornerShape(10.dp)),
+            )
+        }
+
         Spacer(Modifier.height(12.dp))
-        VenueTextField(value = city,    onValueChange = { city    = it }, label = "City (optional)",     enabled = !isSaving)
+
+        // ── City ──────────────────────────────────────────────────────────────
+        VenueTextField(value = city, onValueChange = { city = it }, label = "City (optional)", enabled = !uiState.isSaving)
         Spacer(Modifier.height(24.dp))
 
         Button(
-            onClick  = { onSave(name, address, city) },
-            enabled  = name.isNotBlank() && !isSaving,
+            onClick  = { viewModel.addVenue(name, city); onDismiss() },
+            enabled  = name.isNotBlank() && !uiState.isSaving,
             modifier = Modifier.fillMaxWidth().height(52.dp),
             shape    = MaterialTheme.shapes.small,
             colors   = ButtonDefaults.buttonColors(
@@ -296,11 +347,63 @@ private fun AddVenueSheet(
                 disabledContentColor   = OnAccent.copy(alpha = 0.6f),
             ),
         ) {
-            if (isSaving) CircularProgressIndicator(modifier = Modifier.size(18.dp), color = OnAccent, strokeWidth = 2.dp)
+            if (uiState.isSaving) CircularProgressIndicator(modifier = Modifier.size(18.dp), color = OnAccent, strokeWidth = 2.dp)
             else Text("Save Venue", fontWeight = FontWeight.Bold)
         }
     }
 }
+
+// ─── Suggestion row ───────────────────────────────────────────────────────────
+
+@Composable
+private fun SuggestionRow(prediction: PlacePrediction, onClick: () -> Unit, showDivider: Boolean) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.LocationOn, null, tint = ElectricCyan, modifier = Modifier.size(14.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text     = prediction.description,
+                style    = MaterialTheme.typography.bodyMedium,
+                color    = OnSurface,
+                maxLines = 2,
+                fontSize = 13.sp,
+            )
+        }
+        if (showDivider) {
+            Spacer(Modifier.height(8.dp))
+            Box(Modifier.fillMaxWidth().height(0.5.dp).background(SurfaceVariant))
+        }
+    }
+}
+
+// ─── Read-only coord field ────────────────────────────────────────────────────
+
+@Composable
+private fun CoordField(label: String, value: String, modifier: Modifier = Modifier) {
+    OutlinedTextField(
+        value         = value,
+        onValueChange = {},
+        label         = { Text(label, fontSize = 11.sp) },
+        readOnly      = true,
+        singleLine    = true,
+        modifier      = modifier,
+        shape         = RoundedCornerShape(10.dp),
+        colors        = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor   = ElectricCyan,
+            unfocusedBorderColor = SurfaceVariant,
+            focusedTextColor     = ElectricCyan,
+            unfocusedTextColor   = ElectricCyan,
+            disabledTextColor    = ElectricCyan,
+        ),
+    )
+}
+
+// ─── Generic text field ───────────────────────────────────────────────────────
 
 @Composable
 private fun VenueTextField(
