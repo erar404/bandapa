@@ -54,6 +54,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -63,6 +64,7 @@ import com.bandapa.feature.band.domain.Band
 import com.bandapa.feature.band.domain.BandDetailUiState
 import com.bandapa.feature.band.domain.BandMemberWithProfile
 import com.bandapa.feature.calendar.domain.Event
+import coil3.compose.AsyncImage
 import com.bandapa.ui.theme.Background
 import com.bandapa.ui.theme.ElectricCyan
 import com.bandapa.ui.theme.ElectricPurple
@@ -206,6 +208,18 @@ private fun BandInfoSection(band: Band) {
             .background(Surface)
             .padding(16.dp),
     ) {
+        if (!band.imageUrl.isNullOrBlank()) {
+            AsyncImage(
+                model              = band.imageUrl,
+                contentDescription = band.name,
+                contentScale       = ContentScale.Crop,
+                modifier           = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .clip(RoundedCornerShape(10.dp)),
+            )
+            Spacer(Modifier.height(12.dp))
+        }
         if (band.genres.isNotEmpty()) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 band.genres.forEach { genre ->

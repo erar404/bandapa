@@ -56,7 +56,11 @@
       "Bash(Test-Path *)",
       "Bash(xargs grep -l \"notification\\\\|notification\\\\|FCM\\\\|push\\\\|Realtime\")",
       "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\Arellano\\\\ERA\\\\Coding\\\\bandapa\\\\composeApp\\\\src\\\\androidMain\\\\res\" -Directory | Where-Object {$_.Name -match \"^mipmap\"})",
-      "Bash(python3 *)"
+      "Bash(python3 *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Arellano\\\\ERA\\\\Coding\\\\bandapa\" -Depth 2)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(xargs grep -l \"expect\\\\|actual\")"
     ]
   },
   "enableAllProjectMcpServers": true,

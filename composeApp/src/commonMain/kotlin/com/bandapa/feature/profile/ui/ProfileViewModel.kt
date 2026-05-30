@@ -16,6 +16,7 @@ data class ProfileUiState(
     val bands: List<Band> = emptyList(),
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
+    val isUploadingPhoto: Boolean = false,
     val error: String? = null,
     val savedSuccess: Boolean = false,
 )
@@ -67,6 +68,25 @@ class ProfileViewModel(
                 _uiState.value = _uiState.value.copy(
                     isSaving = false,
                     error    = e.message ?: "Failed to save name",
+                )
+            }
+        }
+    }
+
+    fun uploadPhoto(bytes: ByteArray) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isUploadingPhoto = true, error = null)
+            try {
+                val updated = profileRepo.uploadDisplayPicture(bytes)
+                _uiState.value = _uiState.value.copy(
+                    profile         = updated.copy(email = _uiState.value.profile.email),
+                    isUploadingPhoto = false,
+                    savedSuccess     = true,
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isUploadingPhoto = false,
+                    error            = e.message ?: "Failed to upload photo",
                 )
             }
         }

@@ -15,6 +15,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 
 data class HomeUiState(
     val profile: Profile = Profile(),
@@ -45,20 +46,25 @@ class HomeViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val profileDeferred       = async { profileRepo.getProfile() }
-                val bandsDeferred         = async { bandRepo.getMyBands() }
-                val eventsDeferred        = async { calendarRepo.getTodayEvents() }
-                val announcementsDeferred = async { announcementRepo.getActiveAnnouncements() }
+                supervisorScope {
+                    val profileDeferred = async { profileRepo.getProfile() }
+                    val bandsDeferred   = async { bandRepo.getMyBands() }
+                    val eventsDeferred  = async { calendarRepo.getTodayEvents() }
+                    // announcements lives in bandapa-main, not public — catch until schema is unified
+                    val announcementsDeferred = async {
+                        runCatching { announcementRepo.getActiveAnnouncements() }.getOrElse { emptyList() }
+                    }
 
-                val profile = profileDeferred.await()
-                val email   = profile.email ?: profileRepo.getCurrentUserEmail()
-                _uiState.value = HomeUiState(
-                    profile       = profile.copy(email = email),
-                    myBands       = bandsDeferred.await(),
-                    todayEvents   = eventsDeferred.await(),
-                    announcements = announcementsDeferred.await(),
-                    isLoading     = false,
-                )
+                    val profile = profileDeferred.await()
+                    val email   = profile.email ?: profileRepo.getCurrentUserEmail()
+                    _uiState.value = HomeUiState(
+                        profile       = profile.copy(email = email),
+                        myBands       = bandsDeferred.await(),
+                        todayEvents   = eventsDeferred.await(),
+                        announcements = announcementsDeferred.await(),
+                        isLoading     = false,
+                    )
+                }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,

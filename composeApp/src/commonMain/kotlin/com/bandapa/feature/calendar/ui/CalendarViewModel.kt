@@ -88,14 +88,16 @@ class CalendarViewModel(
             try {
                 val startIso = if (isAllDay) "${date}T00:00:00Z" else "${date}T${startHhmm}:00Z"
                 val endIso   = if (isAllDay) "${date}T23:59:59Z" else "${date}T${endHhmm}:00Z"
+                val resolvedBandId = bandId.takeIf { !it.isNullOrBlank() }
                 val event = Event(
-                    title    = title.trim(),
+                    title     = title.trim(),
+                    eventType = if (resolvedBandId != null) "band_rehearsal" else "personal",
                     startTime = startIso,
                     endTime   = endIso,
-                    bandId   = bandId.takeIf { !it.isNullOrBlank() },
-                    venueId  = venueId.takeIf { !it.isNullOrBlank() },
-                    location = location.trim().takeIf { it.isNotEmpty() },
-                    isAllDay = isAllDay,
+                    bandId    = resolvedBandId,
+                    venueId   = venueId.takeIf { !it.isNullOrBlank() },
+                    location  = location.trim().takeIf { it.isNotEmpty() },
+                    isAllDay  = isAllDay,
                 )
                 val created = calendarRepo.createEvent(event)
                 _uiState.value = CalendarUiState.EventCreated(created)

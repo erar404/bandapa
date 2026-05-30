@@ -24,6 +24,8 @@ data class VenueUiState(
     val suggestions: List<PlacePrediction> = emptyList(),
     val geocoded: GeocodedLocation? = null,
     val isGeocoding: Boolean = false,
+    val selectedVenueType: String = "studio",
+    val customVenueType: String = "",
 )
 
 class VenueViewModel(
@@ -101,13 +103,23 @@ class VenueViewModel(
         _uiState.value = _uiState.value.copy(suggestions = emptyList())
     }
 
+    fun setVenueType(type: String) {
+        _uiState.value = _uiState.value.copy(selectedVenueType = type)
+    }
+
+    fun setCustomVenueType(text: String) {
+        _uiState.value = _uiState.value.copy(customVenueType = text)
+    }
+
     fun resetAddForm() {
         autocompleteJob?.cancel()
         _uiState.value = _uiState.value.copy(
-            addressQuery = "",
-            suggestions  = emptyList(),
-            geocoded     = null,
-            isGeocoding  = false,
+            addressQuery     = "",
+            suggestions      = emptyList(),
+            geocoded         = null,
+            isGeocoding      = false,
+            selectedVenueType = "studio",
+            customVenueType  = "",
         )
     }
 
@@ -116,6 +128,10 @@ class VenueViewModel(
     fun addVenue(name: String, city: String) {
         if (name.isBlank()) return
         val state = _uiState.value
+        val venueType = if (state.selectedVenueType == "others")
+            state.customVenueType.trim().ifBlank { "others" }
+        else
+            state.selectedVenueType
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isSaving = true, error = null)
             try {
@@ -123,6 +139,7 @@ class VenueViewModel(
                     name      = name,
                     address   = state.addressQuery.takeIf { it.isNotBlank() },
                     city      = city.takeIf { it.isNotBlank() },
+                    venueType = venueType,
                     latitude  = state.geocoded?.lat,
                     longitude = state.geocoded?.lng,
                 )

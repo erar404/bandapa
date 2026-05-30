@@ -8,6 +8,6 @@ data class ConflictVote(
     val id: String = "",
     @SerialName("conflict_id") val conflictId: String = "",
     @SerialName("user_id")     val userId: String = "",
-    @SerialName("voted_for")   val votedFor: String = "",
-    @SerialName("created_at")  val createdAt: String = "",
+    @SerialName("vote")      val votedFor: String = "",
+    @SerialName("voted_at") val createdAt: String = "",
 )

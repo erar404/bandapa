@@ -11,6 +11,10 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 class CalendarRepositoryImpl(private val supabase: SupabaseClient) : CalendarRepository {
 
@@ -52,7 +56,18 @@ class CalendarRepositoryImpl(private val supabase: SupabaseClient) : CalendarRep
             ?: error("Not authenticated")
 
         return supabase.from("events").insert(
-            event.copy(userId = userId)
+            buildJsonObject {
+                put("owner_id",   userId)
+                put("title",      event.title)
+                put("event_type", event.eventType)
+                put("start_time", event.startTime)
+                put("end_time",   event.endTime)
+                put("is_all_day", event.isAllDay)
+                put("band_id",    if (event.bandId.isNullOrBlank()) JsonNull else JsonPrimitive(event.bandId))
+                put("venue_id",   if (event.venueId.isNullOrBlank()) JsonNull else JsonPrimitive(event.venueId))
+                event.description?.takeIf { it.isNotBlank() }?.let { put("description", it) }
+                event.location?.takeIf { it.isNotBlank() }?.let { put("location", it) }
+            }
         ) { select() }.decodeSingle<Event>()
     }
 

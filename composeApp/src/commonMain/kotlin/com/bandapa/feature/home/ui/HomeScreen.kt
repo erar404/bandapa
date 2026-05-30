@@ -372,17 +372,26 @@ private fun BandChip(band: Band) {
     ) {
         Box(
             modifier         = Modifier
-                .size(34.dp)
-                .clip(CircleShape)
+                .size(40.dp)
+                .clip(RoundedCornerShape(10.dp))
                 .background(ElectricCyan.copy(alpha = 0.15f)),
             contentAlignment = Alignment.Center,
         ) {
-            Text(
-                text       = band.name.firstOrNull()?.uppercaseChar()?.toString() ?: "B",
-                fontSize   = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color      = ElectricCyan,
-            )
+            if (!band.imageUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model              = band.imageUrl,
+                    contentDescription = band.name,
+                    contentScale       = ContentScale.Crop,
+                    modifier           = Modifier.fillMaxSize().clip(RoundedCornerShape(10.dp)),
+                )
+            } else {
+                Text(
+                    text       = band.name.firstOrNull()?.uppercaseChar()?.toString() ?: "B",
+                    fontSize   = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color      = ElectricCyan,
+                )
+            }
         }
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {

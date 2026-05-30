@@ -5,6 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,6 +31,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -219,11 +223,17 @@ private fun VenueRow(venue: Venue, onDelete: () -> Unit) {
             if (subtitle.isNotEmpty()) {
                 Text(subtitle, style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(alpha = 0.5f))
             }
-            if (venue.latitude != null && venue.longitude != null) {
+            if (venue.venueType.isNotBlank() && venue.venueType != "others") {
                 Text(
-                    text  = "${"%.5f".format(venue.latitude)}, ${"%.5f".format(venue.longitude)}",
+                    text  = venueTypeLabel(venue.venueType),
                     style = MaterialTheme.typography.labelSmall,
-                    color = ElectricCyan.copy(alpha = 0.7f),
+                    color = ElectricPurple.copy(alpha = 0.8f),
+                )
+            } else if (venue.venueType.isNotBlank()) {
+                Text(
+                    text  = venue.venueType,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = ElectricPurple.copy(alpha = 0.8f),
                 )
             }
         }
@@ -233,8 +243,23 @@ private fun VenueRow(venue: Venue, onDelete: () -> Unit) {
     }
 }
 
+private fun venueTypeLabel(type: String) = when (type) {
+    "studio"        -> "Studio"
+    "hangout_place" -> "Hangout Place"
+    "bar_live_venue" -> "Bar / Live Venue"
+    else            -> type.replaceFirstChar { it.uppercase() }
+}
+
 // ─── Add venue sheet ──────────────────────────────────────────────────────────
 
+private val venueTypeOptions = listOf(
+    "studio"         to "Studio",
+    "hangout_place"  to "Hangout Place",
+    "bar_live_venue" to "Bar / Live Venue",
+    "others"         to "Others",
+)
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AddVenueSheet(
     uiState: VenueUiState,
@@ -257,6 +282,47 @@ private fun AddVenueSheet(
 
         // ── Name ──────────────────────────────────────────────────────────────
         VenueTextField(value = name, onValueChange = { name = it }, label = "Name *", enabled = !uiState.isSaving)
+        Spacer(Modifier.height(16.dp))
+
+        // ── Venue type ────────────────────────────────────────────────────────
+        Text(
+            text       = "Venue Type",
+            style      = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color      = OnSurface.copy(alpha = 0.7f),
+        )
+        Spacer(Modifier.height(8.dp))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            venueTypeOptions.forEach { (key, label) ->
+                FilterChip(
+                    selected = uiState.selectedVenueType == key,
+                    onClick  = { viewModel.setVenueType(key) },
+                    label    = { Text(label, style = MaterialTheme.typography.labelMedium) },
+                    enabled  = !uiState.isSaving,
+                    colors   = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor     = ElectricPurple.copy(alpha = 0.18f),
+                        selectedLabelColor         = ElectricPurple,
+                        containerColor             = SurfaceVariant,
+                        labelColor                 = OnSurface.copy(alpha = 0.7f),
+                    ),
+                    border   = FilterChipDefaults.filterChipBorder(
+                        enabled          = !uiState.isSaving,
+                        selected         = uiState.selectedVenueType == key,
+                        selectedBorderColor = ElectricPurple,
+                        borderColor      = SurfaceVariant,
+                    ),
+                )
+            }
+        }
+        if (uiState.selectedVenueType == "others") {
+            Spacer(Modifier.height(8.dp))
+            VenueTextField(
+                value         = uiState.customVenueType,
+                onValueChange = viewModel::setCustomVenueType,
+                label         = "Specify type",
+                enabled       = !uiState.isSaving,
+            )
+        }
         Spacer(Modifier.height(12.dp))
 
         // ── Address with autocomplete ─────────────────────────────────────────

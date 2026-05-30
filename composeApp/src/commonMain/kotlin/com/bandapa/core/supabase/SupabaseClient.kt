@@ -12,7 +12,9 @@ val supabaseClient = createSupabaseClient(
     supabaseKey = BuildKonfig.SUPABASE_ANON_KEY,
 ) {
     install(Auth)
-    install(Postgrest)
+    install(Postgrest) {
+        defaultSchema = "bandapa-main"
+    }
     install(Realtime)
     install(Storage)
 }

@@ -17,7 +17,7 @@ class ConflictsRepositoryImpl(private val supabase: SupabaseClient) : ConflictsR
             ?: error("Not authenticated")
 
         val conflicts = supabase.from("conflicts").select {
-            filter { eq("status", "open") }
+            filter { eq("status", "pending") }
         }.decodeList<Conflict>()
             .sortedByDescending { it.createdAt }
 
@@ -49,6 +49,7 @@ class ConflictsRepositoryImpl(private val supabase: SupabaseClient) : ConflictsR
         }
     }
 
+    // vote values for bandapa-main: 'cancel' or 'greenlit'
     override suspend fun vote(conflictId: String, eventId: String) {
         val userId = supabase.auth.currentUserOrNull()?.id
             ?: error("Not authenticated")
@@ -63,14 +64,14 @@ class ConflictsRepositoryImpl(private val supabase: SupabaseClient) : ConflictsR
             buildJsonObject {
                 put("conflict_id", conflictId)
                 put("user_id", userId)
-                put("voted_for", eventId)
+                put("vote", eventId)   // caller passes 'cancel' or 'greenlit'
             }
         )
     }
 
     override suspend fun dismiss(conflictId: String) {
         supabase.from("conflicts").update(
-            buildJsonObject { put("status", "resolved") }
+            buildJsonObject { put("status", "cancelled") }
         ) {
             filter { eq("id", conflictId) }
         }

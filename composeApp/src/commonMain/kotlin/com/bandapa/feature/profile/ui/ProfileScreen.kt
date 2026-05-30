@@ -47,10 +47,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.bandapa.feature.band.domain.Band
+import com.bandapa.feature.band.ui.BandImagePicker
 import com.bandapa.feature.venues.ui.VenuesScreen
 import com.bandapa.ui.theme.Background
 import com.bandapa.ui.theme.ElectricCyan
@@ -80,11 +83,13 @@ fun ProfileScreen(
     var nameField by remember(uiState.profile.name) {
         mutableStateOf(uiState.profile.name ?: "")
     }
+    var pendingPhotoBytes by remember { mutableStateOf<ByteArray?>(null) }
 
     LaunchedEffect(uiState.savedSuccess) {
         if (uiState.savedSuccess) {
-            snackbarHostState.showSnackbar("Name saved!")
+            snackbarHostState.showSnackbar("Saved!")
             viewModel.clearSavedSuccess()
+            pendingPhotoBytes = null
         }
     }
 
@@ -121,14 +126,61 @@ fun ProfileScreen(
                 .joinToString("") { it.firstOrNull()?.uppercaseChar()?.toString() ?: "" }
                 .ifEmpty { "?" }
 
-            Box(
-                modifier         = Modifier.size(80.dp).clip(CircleShape).background(ElectricPurple),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(text = initials, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = OnAccent)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(80.dp).clip(CircleShape)) {
+                    if (!uiState.profile.displayPicture.isNullOrBlank()) {
+                        AsyncImage(
+                            model              = uiState.profile.displayPicture,
+                            contentDescription = "Profile picture",
+                            contentScale       = ContentScale.Crop,
+                            modifier           = Modifier.fillMaxSize(),
+                        )
+                    } else {
+                        Box(
+                            modifier         = Modifier.fillMaxSize().background(ElectricPurple),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(text = initials, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = OnAccent)
+                        }
+                    }
+                    if (uiState.isUploadingPhoto) {
+                        Box(
+                            modifier         = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.4f)),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            CircularProgressIndicator(modifier = Modifier.size(28.dp), color = ElectricPurple, strokeWidth = 2.dp)
+                        }
+                    }
+                }
+                Spacer(Modifier.width(16.dp))
+                Column {
+                    Text(
+                        uiState.profile.name?.ifBlank { null } ?: uiState.profile.email ?: "",
+                        style      = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color      = OnSurface,
+                    )
+                    uiState.profile.username?.let { un ->
+                        Text("@$un", style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(alpha = 0.5f))
+                    }
+                }
             }
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(12.dp))
+
+            // Photo picker — shows as a small chip-style button
+            BandImagePicker(
+                selectedBytes   = pendingPhotoBytes,
+                onImageSelected = { bytes ->
+                    if (bytes != null) {
+                        pendingPhotoBytes = bytes
+                        viewModel.uploadPhoto(bytes)
+                    }
+                },
+                modifier = Modifier.size(72.dp),
+            )
+
+            Spacer(Modifier.height(28.dp))
 
             // ─── Name field ────────────────────────────────────────────────────
             Text(

@@ -1,0 +1,5 @@
+app_identifier("com.bandapa.app")
+apple_id("it.arellanoerwin@gmail.com")
+
+itc_team_id("")   # App Store Connect Team ID – fill in after first login
+team_id("")       # Developer Portal Team ID – fill in after first login

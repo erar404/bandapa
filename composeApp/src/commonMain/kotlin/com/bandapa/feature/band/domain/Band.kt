@@ -11,9 +11,9 @@ data class Band(
     val genres: List<String> = emptyList(),
     @SerialName("date_formed") val dateFormed: String? = null,
     val label: String? = null,
-    @SerialName("invite_code")  val inviteCode: String = "",
-    @SerialName("owner_id")     val ownerId: String = "",
-    @SerialName("spotify_url")  val spotifyUrl: String? = null,
-    @SerialName("image_url")    val imageUrl: String? = null,
+    @SerialName("invite_code")       val inviteCode: String = "",
+    @SerialName("created_by")        val ownerId: String = "",
+    @SerialName("spotify_artist_id") val spotifyUrl: String? = null,
+    @SerialName("image_url")         val imageUrl: String? = null,
     @SerialName("created_at")   val createdAt: String = "",
 )

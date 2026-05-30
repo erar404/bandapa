@@ -6,9 +6,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Conflict(
     val id: String = "",
-    @SerialName("event_a_id") val eventAId: String = "",
-    @SerialName("event_b_id") val eventBId: String = "",
-    @SerialName("band_id")    val bandId: String? = null,
-    val status: String = "open",
+    @SerialName("band_event_id")     val eventAId: String = "",
+    @SerialName("personal_event_id") val eventBId: String = "",
+    val status: String = "pending",
     @SerialName("created_at") val createdAt: String = "",
 )

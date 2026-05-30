@@ -2,142 +2,195 @@
 
 ## Goal
 
-Build and maintain the **bandapa** Kotlin Multiplatform (KMP) / Compose Multiplatform app — a band calendar and management tool targeting Android (and iOS structure in place). The app uses Supabase as its backend (project ref: `rrfelwwoypouqcjbdzrb`).
+Build **Bandapa** — a Kotlin Multiplatform Mobile (KMM) app for Android + iOS that gives bands a shared calendar with conflict detection, multi-band support, venue management, and a unified profile/band dashboard. The app uses Supabase as its backend (PostgreSQL, Auth, Realtime, Storage).
 
-This session focused on feature additions and bug fixes. The outstanding unfinished item is the **Google Maps Places autocomplete + geocoding + static map preview on the Add Venue sheet** — all the code was written and compiles, but the APK containing those changes has **never been successfully built** due to JVM OOM crashes during the DEX phase. The venues feature still works (minus Places integration) in the current live APK.
+Acceptance criteria in play:
+- App must not crash on login or cold-open when already authenticated.
+- All data reads/writes must use the `bandapa-main` Postgres schema (migrated away from `public.*`).
+- Username-based login (not just email) must work via the `get_email_by_username` RPC.
+- Band display pictures must show in the Bands list, Home screen "My Bands" section, and Band Detail screen.
+- Profile page must support display-picture upload and name editing.
+- Add Venue form must include a venue-type selector (Studio / Hangout Place / Bar/Live Venue / Others).
 
 ---
 
 ## Current State
 
-### Live APK (26.01 MB, uploaded to Supabase Storage)
-`https://rrfelwwoypouqcjbdzrb.supabase.co/storage/v1/object/public/releases/bandapa-latest.apk`
+**The app builds cleanly and the latest APK is live at:**
+```
+https://rrfelwwoypouqcjbdzrb.supabase.co/storage/v1/object/public/releases/bandapa-latest.apk
+```
 
-Working and confirmed:
-- **Announcements on Home screen** — fetches `announcements` table, shows section with Campaign icon, title/body/image cards. Supabase Realtime subscription listens for new inserts while app is open.
-- **Device notifications for new announcements** — Android local notification (channel `bandapa_announcements`) with BigPictureStyle when image URL present; iOS uses `UNUserNotificationCenter`.
-- **Announcement image column** — `image_url` on `Announcement` model + Coil `AsyncImage` in card.
-- **New app icon** — bandapa guitar+drum logo (dark green PNG from `static/AppIcons/android/`) as adaptive icon foreground; old soundwave vector replaced. Notification small icon is `ic_notification.xml` (white guitar vector).
-- **app_logo.png** (splash + nav screen) replaced with `static/AppIcons/playstore.png` (512x512 tight crop).
-- **Login crash fix** — explicit Koin type parameters in `homeModule` + null-safe `createChannel()` in `AndroidNotificationService`.
+**What is working:**
+- Login/signup (email + password; username + password via `get_email_by_username` RPC)
+- Navigation (NavGraph double-navigation crash fixed with `isFirstComposition` guard)
+- Home screen: today's events, my bands with image thumbnails, announcements (returns empty list gracefully)
+- Bands tab: band cards with image thumbnails
+- Band Detail: full-width band cover image at top of info section
+- Profile page: display picture upload via `avatars` storage bucket, name editing, username shown
+- Venues: add venue with type selector (Studio / Hangout Place / Bar/Live Venue / Others + text field), type badge shown in list rows
+- All data sources target `bandapa-main` schema (`defaultSchema = "bandapa-main"`)
+- `bandapa-main.bands` has 1 row (migrated from `public.bands` — band named "erar", invite code C862E6)
+- `bandapa-main.band_members` has 1 row (migrated — user is admin)
+- `bandapa-main.users` has 1 row (username: erar-user, full_name: Erwin Roy Arellano)
 
-### Code written but NOT yet in APK (builds keep OOMing)
-- **Venues — Google Places autocomplete** (`GooglePlacesClient.kt`)
-- **Venues — address → lat/lng geocoding** (auto-fills on Places selection)
-- **Venues — static Google Maps preview** (Coil `AsyncImage` with Static Maps API URL)
-- **`latitude`/`longitude` columns** on `venues` table (migration 008 already applied to live DB; model + repo + ViewModel updated in code)
-- **`VenueViewModel` rewrite** with `addressQuery`, `suggestions`, `geocoded` state + 350ms debounce
+**What is partial / not yet tested:**
+- Calendar event creation: code now sends `event_type` and `owner_id` correctly but has not been confirmed working end-to-end in the new schema.
+- Conflicts screen: adapted to `bandapa-main` column names (`band_event_id`, `personal_event_id`, status `"pending"`) but **voting is broken** — the app still passes an event UUID where the DB column `vote` expects `'cancel'` or `'greenlit'`. No conflicts exist yet so nothing is blocking.
+- Realtime announcements: subscription targets `bandapa-main.announcements` correctly. Table exists with 0 rows.
+- iOS target: not built/tested; only Android has been compiled and uploaded.
 
-### Database (live Supabase — all migrations applied)
-- Migration 006: `announcements` in `supabase_realtime` publication
-- Migration 007: `image_url text` column on `announcements` + `announcement-images` storage bucket
-- Migration 008: `latitude double precision`, `longitude double precision` on `venues`
+**`public.*` tables still have their original data** (1 profile, 1 band, 1 band_member) — no longer read by the app but not yet dropped.
 
 ---
 
 ## Files Actively Being Edited
 
-### New files (untracked — NOT yet committed or in live APK)
-- `composeApp/src/commonMain/kotlin/com/bandapa/feature/venues/data/GooglePlacesClient.kt` — Places Autocomplete + Geocoding REST client via Ktor HttpClient; `staticMapUrl()` helper for dark-themed Static Maps API URL. Complete, compiles, never built into APK.
-- `supabase/migrations/20260530000008_venues_lat_lng.sql` — local migration file (migration already applied to live DB).
+All changes are unstaged/uncommitted on branch `master` (25 files, +347/-90 lines vs last commit).
 
-### Modified (unstaged — contain venues Places changes, NOT in live APK)
-- `composeApp/src/commonMain/kotlin/com/bandapa/feature/venues/data/VenueRepository.kt` — `createVenue` signature adds `latitude: Double?, longitude: Double?`
-- `composeApp/src/commonMain/kotlin/com/bandapa/feature/venues/data/VenueRepositoryImpl.kt` — passes lat/lng to Supabase insert
-- `composeApp/src/commonMain/kotlin/com/bandapa/feature/venues/domain/Venue.kt` — added `latitude: Double?`, `longitude: Double?` fields
-- `composeApp/src/commonMain/kotlin/com/bandapa/feature/venues/ui/VenueViewModel.kt` — completely rewritten: owns `addressQuery`, `suggestions`, `geocoded`, `isGeocoding` state; `onAddressQueryChanged()` with 350ms debounce; `onPlaceSelected()` triggers geocoding; `addVenue(name, city)` — no address param (comes from ViewModel state now)
-- `composeApp/src/commonMain/kotlin/com/bandapa/feature/venues/ui/VenuesScreen.kt` — `AddVenueSheet` rebuilt with autocomplete dropdown (plain `if`, not `AnimatedVisibility`), lat/lng read-only teal fields, static map `AsyncImage`; venues list rows show lat/lng in small teal text
-- `composeApp/src/commonMain/kotlin/com/bandapa/core/di/Modules.kt` — `venueModule` registers `GooglePlacesClient` as singleton; `homeModule` uses explicit `get<T>()` calls (crash fix); imports `NotificationService`
-- `composeApp/src/androidMain/kotlin/com/bandapa/core/notifications/NotificationServiceImpl.kt` — `createChannel()` null-safe (`?: return`) + wrapped in `try-catch` in `init` (crash fix); `showNotification` takes `imageUrl: String?`
-- `composeApp/build.gradle.kts` — added `GOOGLE_MAPS_API_KEY` to `buildkonfig`; added `coil-compose` + `coil-network-ktor` to commonMain deps
+- `composeApp/src/commonMain/kotlin/com/bandapa/core/supabase/SupabaseClient.kt` — Added `install(Postgrest) { defaultSchema = "bandapa-main" }`
 
-### Modified (staged — in live APK)
-- `composeApp/src/commonMain/kotlin/com/bandapa/feature/home/ui/HomeScreen.kt` — Announcements section with `AnnouncementCard` (Campaign icon, optional image at top)
-- `composeApp/src/commonMain/kotlin/com/bandapa/feature/home/ui/HomeViewModel.kt` — 5 deps; `announcements` in state; `listenForNewAnnouncements()` Realtime; notification trigger
-- `composeApp/src/commonMain/kotlin/com/bandapa/core/notifications/NotificationService.kt` — interface `showNotification(title, body, imageUrl?)`
-- `composeApp/src/commonMain/kotlin/com/bandapa/core/di/PlatformModule.kt` — `expect fun platformModule(): Module`
-- `composeApp/src/androidMain/kotlin/com/bandapa/core/di/PlatformModule.android.kt` — actual providing `AndroidNotificationService`
-- `composeApp/src/iosMain/kotlin/com/bandapa/core/di/PlatformModule.ios.kt` — actual providing `IosNotificationService`
-- `composeApp/src/iosMain/kotlin/com/bandapa/core/notifications/NotificationServiceImpl.kt` — iOS `UNUserNotificationCenter` impl
-- `composeApp/src/androidMain/AndroidManifest.xml` — `POST_NOTIFICATIONS` permission
-- `composeApp/src/androidMain/kotlin/com/bandapa/MainActivity.kt` — requests `POST_NOTIFICATIONS` on Android 13+
-- `gradle/libs.versions.toml` — added `coil = "3.1.0"` + two coil library entries
-- `gradle.properties` — `Xmx1536m -XX:MetaspaceSize=256m -XX:+UseSerialGC`
-- `local.properties` — added `google.maps.api_key=AIzaSyD0-QPiD49hA7aCdm2L76aBdz9WB8x0a3E`
+- `composeApp/src/commonMain/kotlin/com/bandapa/navigation/NavGraph.kt` — Added `isFirstComposition` guard so `LaunchedEffect(sessionStatus)` skips its first fire; `startDest` handles initial route, preventing double-navigation crash
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/home/ui/HomeViewModel.kt` — Wrapped async calls in `supervisorScope`; announcements deferred uses `runCatching { }.getOrElse { emptyList() }` so a failing table can't crash the load
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/band/domain/Profile.kt` — Added `@SerialName("full_name") val name`, `username`, `@SerialName("display_picture") val displayPicture`
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/band/domain/Band.kt` — `@SerialName("created_by") val ownerId`, `@SerialName("spotify_artist_id") val spotifyUrl`
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/band/domain/BandMember.kt` — Replaced `role: String` with `@SerialName("is_admin") val isAdmin: Boolean`; `role` is now `@Transient val role = if (isAdmin) "admin" else "member"`
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/calendar/domain/Event.kt` — `@SerialName("owner_id") val userId`, added `@SerialName("event_type") val eventType = "personal"`
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/conflicts/domain/Conflict.kt` — `@SerialName("band_event_id") val eventAId`, `@SerialName("personal_event_id") val eventBId`, removed `bandId`, status default `"pending"`
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/conflicts/domain/ConflictVote.kt` — `@SerialName("vote") val votedFor`, `@SerialName("voted_at") val createdAt`
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/venues/domain/Venue.kt` — Added `@SerialName("venue_type") val venueType = "others"`
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/profile/data/ProfileRepository.kt` — Added `suspend fun uploadDisplayPicture(bytes: ByteArray): Profile`
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/profile/data/ProfileRepositoryImpl.kt` — All queries use `"users"` table (not `"profiles"`); `updateProfile` writes `"full_name"`; `uploadDisplayPicture` uploads to `avatars` bucket then updates `display_picture`
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/profile/ui/ProfileViewModel.kt` — Added `isUploadingPhoto` state and `uploadPhoto(bytes: ByteArray)`
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/profile/ui/ProfileScreen.kt` — Avatar shows actual photo via `AsyncImage` with initials fallback; `BandImagePicker` reused for photo picking; username displayed as `@handle`
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/band/data/BandRepositoryImpl.kt` — Uses `created_by`, `spotify_artist_id`, `is_admin = false`; `getMembersWithProfiles` queries `"users"`; `getBandByInviteCode` passes `p_code` param; `updateBand` uses `spotify_artist_id`
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/calendar/data/CalendarRepositoryImpl.kt` — `createEvent` uses explicit `buildJsonObject` (avoids inserting empty `id`), includes `owner_id` and `event_type`
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/calendar/ui/CalendarViewModel.kt` — `createEvent` sets `eventType = if (bandId != null) "band_rehearsal" else "personal"`
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/conflicts/data/ConflictsRepositoryImpl.kt` — Filters `status = "pending"`, vote inserts to `"vote"` column, dismiss sets `"cancelled"`
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/venues/data/VenueRepository.kt` — `createVenue` signature includes `venueType: String`
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/venues/data/VenueRepositoryImpl.kt` — Inserts `added_by` (not `created_by`), inserts `venue_type`
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/venues/ui/VenueViewModel.kt` — `VenueUiState` has `selectedVenueType` / `customVenueType`; `setVenueType()`, `setCustomVenueType()`, updated `addVenue()`
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/venues/ui/VenuesScreen.kt` — `AddVenueSheet` has `FilterChip` type selector + "Others" text field; `VenueRow` shows venue type label; `venueTypeLabel()` helper function added
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/home/ui/HomeScreen.kt` — `BandChip` shows `AsyncImage` (40×40 rounded square) with fallback initial letter
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/band/ui/BandsScreen.kt` — `BandCard` shows `AsyncImage` (46×46) with fallback initial letter
+
+- `composeApp/src/commonMain/kotlin/com/bandapa/feature/band/ui/BandDetailScreen.kt` — `BandInfoSection` shows full-width 180dp cover image when `imageUrl` is set
+
+- `README.md` — Fully regenerated; reflects current architecture, schema, and setup steps
 
 ---
 
 ## Failed Attempts
 
-- **`AnimatedVisibility` inside `Box` within `Column` for suggestions dropdown** — compile error: `ColumnScope.AnimatedVisibility cannot be called in this context with an implicit receiver.` Kotlin picks the `ColumnScope` extension overload even inside a nested `Box` because the outer `Column` scope leaks in. **Fix**: replaced with plain `if` block — suggestions column appears inline below the text field.
+- **Setting `defaultSchema = "bandapa-main"` in round 1 and changing all `@SerialName` values** — Failed because the original app tables were in `public.*` and domain models were already correct for them. Changing `@SerialName` values (e.g. `owner_id`→`created_by`) broke all data reads. Everything was reverted except the NavGraph fix, then the proper migration was done later once the DB structure was confirmed via `mcp__supabase__list_tables`.
 
-- **`callbackFlow` in `AnnouncementRepositoryImpl`** — `callbackFlow` doesn't allow `suspend` calls (`subscribe()`, `collect`) inside its block. Compile errors: `Unresolved reference 'launch'`, `Suspension functions can only be called within coroutine body`. **Fix**: `channelFlow` which is a `ProducerScope` and allows suspend calls.
+- **NavGraph fix alone** — The `isFirstComposition` guard was correct and necessary but not sufficient. The app still crashed because the `announcements` table was in `bandapa-main` while the app was querying `public.announcements`. The real crash mechanism: `async {}` inside a non-`supervisorScope` `launch` throws `PostgrestException`, which propagates through the job hierarchy past the `try/catch` to Android's default uncaught exception handler.
 
-- **`action.decodeRecord<Announcement>()`** — `Unresolved reference 'decodeRecord'` at compile time. The extension isn't accessible/exported in supabase-kt 3.1.4 without knowing the exact import. **Fix**: `Json.decodeFromJsonElement<Announcement>(action.record)` using raw `record: JsonObject` property.
+- **`get_band_by_invite_code` RPC param name** — The original DB function used parameter `p_code`; the code was passing `code`. Fixed both: the DB function was updated to return `id` (instead of `band_id`) and the code now passes `p_code`.
 
-- **JVM OOM during builds** — Gradle daemon crashes during DEX phase (`dexBuilderDebug` / `mergeExtDexDebug`) with native memory OOM (`mmap` / `malloc` failed). Tried heaps: 4g (crashed at DEX) → 2g (crashed at DEX) → 1.5g (crashed at DEX for Places build) → 1.25g (crashed before task graph) → 1g (crashed before task graph). SerialGC helped marginally. Root cause: system running out of free RAM/virtual address space after multiple builds in the same session. **Current config**: 1536m + SerialGC works when config cache is warm. The Places + Coil combination requires more DEX memory than the system has available during an active dev session.
+- **`get_band_by_invite_code` return type conflict** — First migration attempt failed with `ERROR: cannot change return type of existing function`. Fixed by using `DROP FUNCTION IF EXISTS` before `CREATE FUNCTION` in the migration.
 
-- **`homeModule` with un-typed `get()` calls** — `viewModel { HomeViewModel(get(), get(), get(), get(), get()) }` caused runtime `NoBeanDefFoundException`. Koin 4.1.0 can't infer `NotificationService` type (5th param) via type erasure when spanning multiple packages. **Fix**: `get<NotificationService>()` and explicit types for all 5 params.
+- **Gradle daemon OOM** — First rebuild attempt crashed the JVM (`hs_err_pid5168.log`) due to 7 busy background daemons. Resolution: always use `--no-daemon` flag.
 
-- **`AndroidNotificationService.createChannel()` NPE** — `context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)` crashed the Koin factory with NPE. The Java method returns a platform type (`T!`) and Kotlin doesn't insert a null check. Exception propagated uncaught through Koin's factory lambda, crashing the app on login before HomeScreen could render. **Fix**: null guard (`?: return`) + `try { createChannel() } catch (_: Exception) {}` in `init`.
+- **Duplicate `ContentScale` import in HomeScreen.kt** — Adding the import manually when it was already present caused a compile error. Fixed by removing the duplicate.
 
 ---
 
 ## Next Step
 
-**Build the Places-enabled APK.** First close Android Studio and any heavy apps to free RAM. The Gradle config cache should already be valid (no build file changes needed). Then run:
+**Install the current APK and verify the band "erar" loads correctly end-to-end:**
+1. Home screen "My Bands" section shows band "erar" with its cover image thumbnail.
+2. Bands tab shows the same card with image.
+3. Tapping it opens Band Detail with the full-width cover image.
+4. Username login with `erar-user` succeeds (tests `get_email_by_username` querying `bandapa-main.users`).
 
-```powershell
-$env:JAVA_HOME = "C:\Program Files (x86)\Android\openjdk\jdk-17.0.8.101-hotspot"
-$env:Path = "$env:JAVA_HOME\bin;$env:Path"
-Set-Location "C:\Users\Arellano\ERA\Coding\bandapa"
-.\gradlew.bat --no-daemon :composeApp:assembleDebug
+If the band doesn't appear, run this to diagnose:
+```sql
+-- Check RLS is allowing the user to see their band_member row
+SELECT * FROM "bandapa-main".band_members WHERE user_id = '3cb86ca7-be4a-44a6-a9ed-c634e8f5e357';
+SELECT * FROM "bandapa-main".bands WHERE id = '92c2994f-4109-47ad-85af-7b437b7a4bb3';
 ```
 
-If it still OOMs at `dexBuilderDebug`, try enabling R8 shrinking in debug builds to reduce DEX work — add this to `composeApp/build.gradle.kts` inside the `debug` buildType block:
-```kotlin
-buildTypes {
-    getByName("debug") {
-        isMinifyEnabled = true
-        proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
-    }
-}
+If `getBandByInviteCode` fails (JoinBand screen), verify the RPC param name matches:
+```sql
+SELECT * FROM "bandapa-main".get_band_by_invite_code('C862E6');
 ```
-
-After a successful build, upload with the `/bandapa-apk-patch` skill.
 
 ---
 
 ## Context & Gotchas
 
-### Build system
-- **Always use `--no-daemon`** — daemon accumulates memory over builds and eventually crashes. Use the flag every time.
-- **Do NOT change `gradle.properties` repeatedly** — every change invalidates the configuration cache, which forces a full re-evaluation that uses more memory and is more likely to OOM. The current `Xmx1536m + SerialGC` setting is the result of many trials. Leave it alone.
-- **Config cache invalidation**: changes to `gradle.properties` or `build.gradle.kts` force full config recalculation. When cache is warm (no build file changes), `--no-daemon` builds complete in ~24s instead of 2+ minutes.
-- **JVM crash logs** (`hs_err_pid*.log`, `replay_pid*.log`) in project root are noise from failed OOM builds — safe to delete.
+**Supabase project ref:** `rrfelwwoypouqcjbdzrb`  
+**App package:** `com.bandapa` · Min SDK 26 · Target SDK 35 · Kotlin 2.1.21 · Compose Multiplatform 1.7.3  
+**supabase-kt version:** 3.1.4
 
-### Supabase schema
-- All tables are in `"bandapa-main"` schema (not `public`). `supabase.from("bands")` works because the Supabase project's PostgREST exposes `bandapa-main` as the default schema.
-- The `announcements` Realtime subscription needs the table in the `supabase_realtime` publication (applied via migration 006).
-- `venues` has `latitude`/`longitude` columns in the live DB (migration 008 applied) — the code changes that use these columns are in the unstaged files but haven't been built into an APK yet.
+**Build command (always use `--no-daemon`):**
+```powershell
+$env:JAVA_HOME = "C:\Program Files (x86)\Android\openjdk\jdk-17.0.8.101-hotspot"
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+.\gradlew.bat :composeApp:assembleDebug --no-daemon
+```
 
-### Google Maps API key
-- Key: `AIzaSyD0-QPiD49hA7aCdm2L76aBdz9WB8x0a3E` (in `local.properties`)
-- Used for: Places Autocomplete REST, Geocoding REST, Static Maps API (image preview).
-- The user described it as "Google Maps JavaScript API" key. If Places autocomplete returns empty results, check that the "Places API (New)" or "Places API" is enabled in GCP for this key.
+**APK upload:**
+```powershell
+$anonKey = ((Get-Content "local.properties") | Where-Object { $_ -match "^supabase\.anon_key=" }) -replace "^supabase\.anon_key=", ""
+Invoke-RestMethod -Uri "https://rrfelwwoypouqcjbdzrb.supabase.co/storage/v1/object/releases/bandapa-latest.apk" -Method Post -Headers @{ "Authorization" = "Bearer $anonKey"; "x-upsert" = "true" } -ContentType "application/octet-stream" -InFile "composeApp\build\outputs\apk\debug\composeApp-debug.apk"
+```
 
-### Venues Places implementation details
-- `GooglePlacesClient` creates its own `HttpClient()` without specifying an engine (uses Ktor ServiceLoader to auto-detect OkHttp on Android). Multiple `HttpClient` instances are fine in Ktor — they don't conflict with Supabase's internal Ktor client.
-- The suggestions dropdown uses plain `if` NOT `AnimatedVisibility` — Compose `ColumnScope.AnimatedVisibility` extension causes a compiler error inside a `Box` that's nested inside a `Column`. This is a known Kotlin scope receiver ambiguity.
-- `VenueViewModel.addVenue(name, city)` — **NOTE**: signature changed from `addVenue(name, address, city)` to `addVenue(name, city)`. The address now lives in `uiState.addressQuery` (ViewModel state). If anything else in the codebase calls the old 3-param signature, it will fail to compile.
+**Two schemas coexist in the DB:**
+| Schema | Status |
+|---|---|
+| `public` | Legacy — 1 profile, 1 band, 1 band_member still present. Not read by app. Not dropped. |
+| `bandapa-main` | Active — all app data lives here. Same 1 user, 1 band, 1 band_member (migrated in). |
 
-### Koin DI rules learned this session
-- Use explicit `get<Type>()` in `viewModel` lambdas whenever there are 4+ dependencies or when dependency types span multiple feature packages. The implicit `get()` fails via type erasure in Koin 4.1.0 for these cases.
-- `platformModule()` is `expect/actual`. Android provides `AndroidNotificationService`, iOS provides `IosNotificationService`. Both are registered as `single<NotificationService>`.
+**Complete column rename map (public → bandapa-main):**
+| public column | bandapa-main column |
+|---|---|
+| `profiles.name` | `users.full_name` |
+| `profiles` (table) | `users` (table) |
+| `bands.owner_id` | `bands.created_by` |
+| `bands.spotify_url` | `bands.spotify_artist_id` |
+| `band_members.role` (text) | `band_members.is_admin` (boolean) |
+| `events.user_id` | `events.owner_id` |
+| `conflicts.event_a_id` | `conflicts.band_event_id` |
+| `conflicts.event_b_id` | `conflicts.personal_event_id` |
+| `conflicts.status` values: `"open"/"resolved"` | `"pending"/"cancelled"/"greenlit"` |
+| `conflict_votes.voted_for` (UUID FK to events) | `conflict_votes.vote` (text: `'cancel'`/`'greenlit'`) |
+| `venues.created_by` | `venues.added_by` |
 
-### Announcement Realtime
-- Exceptions in `listenForNewAnnouncements()` are silently swallowed — if Realtime fails, home screen just won't receive live updates (no crash, no error shown). Intentional: Realtime is best-effort.
-- `CoroutineScope(Dispatchers.IO)` in `AndroidNotificationService` is an unstructured root scope (not cancelled when ViewModel is cleared). Minor memory leak — acceptable for fire-and-forget notification posting.
+**Conflict voting is fundamentally broken for `bandapa-main`.** The `ConflictsViewModel.vote(conflictId, eventId)` API passes a UUID event ID, but `bandapa-main.conflict_votes.vote` has a CHECK constraint accepting only `'cancel'` or `'greenlit'`. The `ConflictsScreen` and `ConflictsViewModel` need to be redesigned: replace "vote for one event" UI with "cancel or greenlight" buttons. There are currently 0 conflicts in the DB so this is not user-facing yet.
 
-### iOS notifications
-- `IosNotificationService` is text-only — no image attachments. iOS notification image attachments require downloading the image to a temp file and creating `UNNotificationAttachment`, which was not implemented.
+**`bandapa-main.events.event_type` is NOT NULL** (values: `personal`, `band_rehearsal`, `studio_recording`, `hangout`). The `CalendarViewModel` only sets `"personal"` or `"band_rehearsal"`. If the calendar UI should support `"studio_recording"` or `"hangout"`, extend `createEvent()` in `CalendarViewModel`.
+
+**`BandMember.role` is `@Transient`** — not serialized. The actual admin state flows through `isAdmin`. `role` is only used for display in the UI (`RoleBadge`, `canRemove` check).
+
+**Profile picture bucket:** `avatars` — stored at `{userId}/avatar.jpg` with upsert. Bucket is public.  
+**Band image bucket:** `band-images` — stored at `{bandId}/cover.jpg`. Bucket is public.
+
+**`local.properties` is git-ignored.** Required keys: `sdk.dir`, `supabase.url`, `supabase.anon_key`, `google.maps.api_key`. Template at `local.properties.example`.
+
+**The `announcements` table** (`bandapa-main.announcements`) exists and is empty (0 rows). `HomeViewModel` still wraps the fetch in `runCatching { }.getOrElse { emptyList() }` as a safety net. The Realtime subscription (`newAnnouncementsFlow`) targets `bandapa-main` and will work once rows are inserted.
+
+**`bandapa-main.admin_users`** has 1 row (the existing user). This table exists in the DB but is not used by any app code currently.

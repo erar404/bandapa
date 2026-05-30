@@ -18,6 +18,10 @@ import androidx.compose.foundation.Image
 import bandapa.composeapp.generated.resources.Res
 import bandapa.composeapp.generated.resources.app_logo
 import org.jetbrains.compose.resources.painterResource
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -51,7 +55,14 @@ fun BandapaNavHost() {
     val startDest = if (sessionStatus is SessionStatus.Authenticated)
         Route.Dashboard.path else Route.Login.path
 
+    // Skip the first LaunchedEffect fire — startDest already handles the initial destination.
+    // Only navigate on subsequent auth state changes (login / logout).
+    var isFirstComposition by remember { mutableStateOf(true) }
     LaunchedEffect(sessionStatus) {
+        if (isFirstComposition) {
+            isFirstComposition = false
+            return@LaunchedEffect
+        }
         when (sessionStatus) {
             is SessionStatus.Authenticated    -> navController.navigate(Route.Dashboard.path) {
                 popUpTo(0) { inclusive = true }

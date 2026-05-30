@@ -34,12 +34,12 @@ class BandRepositoryImpl(private val supabase: SupabaseClient) : BandRepository 
         var band = supabase.from("bands").insert(
             buildJsonObject {
                 put("name", name.trim())
-                put("owner_id", userId)
+                put("created_by", userId)
                 description?.takeIf { it.isNotBlank() }?.let { put("description", it.trim()) }
                 if (genres.isNotEmpty()) put("genres", buildJsonArray { genres.forEach { add(it.trim()) } })
                 dateFormed?.takeIf { it.isNotBlank() }?.let { put("date_formed", it) }
                 label?.takeIf { it.isNotBlank() }?.let { put("label", it.trim()) }
-                spotifyUrl?.takeIf { it.isNotBlank() }?.let { put("spotify_url", it.trim()) }
+                spotifyUrl?.takeIf { it.isNotBlank() }?.let { put("spotify_artist_id", it.trim()) }
             }
         ) { select() }.decodeSingle<Band>()
 
@@ -61,7 +61,7 @@ class BandRepositoryImpl(private val supabase: SupabaseClient) : BandRepository 
     override suspend fun getBandByInviteCode(inviteCode: String): Band =
         supabase.postgrest.rpc(
             "get_band_by_invite_code",
-            buildJsonObject { put("code", inviteCode.uppercase().trim()) }
+            buildJsonObject { put("p_code", inviteCode.uppercase().trim()) }
         ).decodeSingle<Band>()
 
     override suspend fun getBandById(id: String): Band =
@@ -75,7 +75,7 @@ class BandRepositoryImpl(private val supabase: SupabaseClient) : BandRepository 
             buildJsonObject {
                 put("band_id", bandId)
                 put("user_id", userId)
-                put("role", "member")
+                put("is_admin", false)
             }
         ) { select() }.decodeSingle<BandMember>()
     }
@@ -104,12 +104,12 @@ class BandRepositoryImpl(private val supabase: SupabaseClient) : BandRepository 
         spotifyUrl: String?,
     ): Band = supabase.from("bands").update(
         buildJsonObject {
-            put("name",        name.trim())
-            put("description", if (description.isNullOrBlank()) JsonNull else JsonPrimitive(description.trim()))
-            put("genres",      buildJsonArray { genres.forEach { add(it.trim()) } })
-            put("date_formed", if (dateFormed.isNullOrBlank()) JsonNull else JsonPrimitive(dateFormed))
-            put("label",       if (label.isNullOrBlank()) JsonNull else JsonPrimitive(label.trim()))
-            put("spotify_url", if (spotifyUrl.isNullOrBlank()) JsonNull else JsonPrimitive(spotifyUrl.trim()))
+            put("name",              name.trim())
+            put("description",       if (description.isNullOrBlank()) JsonNull else JsonPrimitive(description.trim()))
+            put("genres",            buildJsonArray { genres.forEach { add(it.trim()) } })
+            put("date_formed",       if (dateFormed.isNullOrBlank()) JsonNull else JsonPrimitive(dateFormed))
+            put("label",             if (label.isNullOrBlank()) JsonNull else JsonPrimitive(label.trim()))
+            put("spotify_artist_id", if (spotifyUrl.isNullOrBlank()) JsonNull else JsonPrimitive(spotifyUrl.trim()))
         }
     ) {
         filter { eq("id", id) }
@@ -122,7 +122,7 @@ class BandRepositoryImpl(private val supabase: SupabaseClient) : BandRepository 
         }.decodeList<BandMember>()
         if (members.isEmpty()) return emptyList()
         val userIds = members.map { it.userId }
-        val profiles = supabase.from("profiles").select {
+        val profiles = supabase.from("users").select {
             filter { isIn("id", userIds) }
         }.decodeList<Profile>()
         val profileMap = profiles.associateBy { it.id }

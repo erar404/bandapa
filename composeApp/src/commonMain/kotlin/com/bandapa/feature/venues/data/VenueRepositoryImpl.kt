@@ -12,12 +12,13 @@ class VenueRepositoryImpl(private val supabase: SupabaseClient) : VenueRepositor
     override suspend fun getVenues(): List<Venue> =
         supabase.from("venues").select().decodeList<Venue>()
 
-    override suspend fun createVenue(name: String, address: String?, city: String?, latitude: Double?, longitude: Double?): Venue {
+    override suspend fun createVenue(name: String, address: String?, city: String?, venueType: String, latitude: Double?, longitude: Double?): Venue {
         val userId = supabase.auth.currentUserOrNull()?.id ?: error("Not authenticated")
         return supabase.from("venues").insert(
             buildJsonObject {
                 put("name", name.trim())
-                put("created_by", userId)
+                put("added_by", userId)
+                put("venue_type", venueType.trim().ifBlank { "others" })
                 address?.takeIf { it.isNotBlank() }?.let { put("address", it.trim()) }
                 city?.takeIf { it.isNotBlank() }?.let { put("city", it.trim()) }
                 latitude?.let  { put("latitude",  it) }
